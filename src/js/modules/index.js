@@ -3,14 +3,24 @@ import { onReady, measureHeader } from './utils.js';
 import { buildSectionTOC } from './toc.js';
 import { buildDealerNav } from './dealer-nav.js';
 import { buildBreadcrumb } from './breadcrumb.js';
-import { buildPalette, openPalette } from './palette.js';
+import { buildPalette } from './palette.js';
 import { buildSaveIndicator } from './save-indicator.js';
 import { buildSearchHint } from './search-hint.js';
 import { buildScrollTop } from './scroll-top.js';
 import { buildFloatingSave } from './floating-save.js';
 
-// Guard: only run once even if script is loaded multiple times
-if (!document.getElementById('d2c-custom-styles')) {
+// Register Service Worker on every page — must run outside the /sites/ guard so assets
+// are cached regardless of which admin page is visited first.
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/d2c-sw.js').catch(function () {});
+}
+
+// Guard: only run on site-specific pages (/sites/*) or local sandbox, and only once
+// Skips home, /inventory, /leads, and all other top-level routes on the live admin
+var _host = window.location.hostname;
+var _isLocal = _host === 'localhost' || _host === '127.0.0.1';
+var _isSitePage = /^\/sites\//.test(window.location.pathname);
+if ((_isLocal || _isSitePage) && !document.getElementById('d2c-custom-styles')) {
   injectStyles();
 
   onReady(function () {

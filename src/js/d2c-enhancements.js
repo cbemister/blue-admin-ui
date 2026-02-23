@@ -816,7 +816,14 @@
   }
 
   // src/js/modules/index.js
-  if (!document.getElementById("d2c-custom-styles")) {
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("/d2c-sw.js").catch(function() {
+    });
+  }
+  var _host = window.location.hostname;
+  var _isLocal = _host === "localhost" || _host === "127.0.0.1";
+  var _isSitePage = /^\/sites\//.test(window.location.pathname);
+  if ((_isLocal || _isSitePage) && !document.getElementById("d2c-custom-styles")) {
     injectStyles();
     onReady(function() {
       measureHeader();

@@ -4,6 +4,7 @@ Chrome DevTools Local Overrides enhancement layer for `admin.d2cmedia.ca`. Adds 
 
 ## Features
 
+- **Performance** — Service Worker caches all JS/CSS/images/fonts; repeat-visit LCP drops from ~11 s to ~1–2 s
 - **Command palette** (Ctrl+K) — fuzzy search across all pages and dealerships
 - **Section TOC** — floating right panel with jump links and collapse/expand all
 - **Dealer nav** — floating left panel with the current dealer's page links
@@ -18,13 +19,16 @@ Chrome DevTools Local Overrides enhancement layer for `admin.d2cmedia.ca`. Adds 
 ### Option 1 — Chrome DevTools Local Override (recommended)
 
 1. In Chrome DevTools → **Sources** → **Overrides** → enable and select a local folder
-2. Map the following file to your local copy:
+2. Map **both** files to your local copies:
 
    | Remote URL | Local file |
    |------------|------------|
    | `admin.d2cmedia.ca/assets/js/sitepagesaddedjs.js` | `devtools-loader.js` |
+   | `admin.d2cmedia.ca/d2c-sw.js` | `src/sw/d2c-sw.js` |
 
-3. The loader fetches the enhancement script from jsDelivr CDN automatically.
+   > **How to map a file:** Navigate to the URL in Chrome, right-click the file in Sources → "Save for overrides", then replace the saved file with the local copy. For `d2c-sw.js`, navigate to `https://admin.d2cmedia.ca/d2c-sw.js` (will 404), then save for overrides — Chrome creates the file in your overrides folder at the right path.
+
+3. The loader fetches the enhancement script from jsDelivr CDN automatically. The Service Worker activates on the first page load and caches assets for all subsequent visits.
 
 ### Option 2 — Tampermonkey
 
@@ -70,14 +74,17 @@ https://purge.jsdelivr.net/gh/cbemister/blue-admin-ui@main/src/js/d2c-enhancemen
 
 ```
 blue-admin-ui/
-├── devtools-loader.js       # DevTools override — loads CDN script
-├── src/js/
-│   ├── d2c-enhancements.js  # Build output (served via jsDelivr)
-│   └── modules/             # Source — edit these files
-│       ├── index.js
-│       ├── stylesheet.js
-│       ├── palette.js
-│       └── ...
+├── devtools-loader.js       # DevTools override — loads CDN script + registers SW
+├── src/
+│   ├── js/
+│   │   ├── d2c-enhancements.js  # Build output (served via jsDelivr)
+│   │   └── modules/             # Source — edit these files
+│   │       ├── index.js
+│   │       ├── stylesheet.js
+│   │       ├── palette.js
+│   │       └── ...
+│   └── sw/
+│       └── d2c-sw.js        # Service Worker — asset caching + FontAwesome blocking
 └── docs/                    # DOM and UI system reference docs
 ```
 

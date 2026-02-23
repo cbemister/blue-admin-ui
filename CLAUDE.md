@@ -26,25 +26,27 @@ A **pre-push git hook** (`.git/hooks/pre-push`) runs `npm run build` automatical
 
 ```
 blue-admin-ui/
-├── devtools-loader.js          # DevTools override — loads CDN script (tiny, ~5 lines)
+├── devtools-loader.js          # DevTools override — loads CDN script + registers SW
 ├── package.json                # npm scripts: build, watch
 ├── CHANGELOG.md                # Narrative log of every significant change + rationale
 ├── README.md                   # Setup and usage guide
 ├── src/
-│   └── js/
-│       ├── d2c-enhancements.js # BUILD OUTPUT — do not edit directly
-│       └── modules/            # Source modules (edit these)
-│           ├── index.js        # Entry point
-│           ├── stylesheet.js   # All injected CSS
-│           ├── utils.js        # Shared helpers
-│           ├── toc.js          # Section table of contents
-│           ├── dealer-nav.js   # Floating left dealer nav
-│           ├── breadcrumb.js   # Header breadcrumb
-│           ├── palette.js      # Ctrl+K command palette
-│           ├── save-indicator.js # AJAX save status
-│           ├── search-hint.js  # Search button in header
-│           ├── scroll-top.js   # Scroll-to-top button
-│           └── floating-save.js # Save button in right panel
+│   ├── js/
+│   │   ├── d2c-enhancements.js # BUILD OUTPUT — do not edit directly
+│   │   └── modules/            # Source modules (edit these)
+│   │       ├── index.js        # Entry point
+│   │       ├── stylesheet.js   # All injected CSS
+│   │       ├── utils.js        # Shared helpers
+│   │       ├── toc.js          # Section table of contents
+│   │       ├── dealer-nav.js   # Floating left dealer nav
+│   │       ├── breadcrumb.js   # Header breadcrumb
+│   │       ├── palette.js      # Ctrl+K command palette
+│   │       ├── save-indicator.js # AJAX save status
+│   │       ├── search-hint.js  # Search button in header
+│   │       ├── scroll-top.js   # Scroll-to-top button
+│   │       └── floating-save.js # Save button in right panel
+│   └── sw/
+│       └── d2c-sw.js           # Service Worker — NOT built by esbuild, edit directly
 └── docs/                       # UI system documentation
 ```
 
@@ -77,6 +79,8 @@ These are the live selectors used by the enhancement script:
 - **Single IIFE output** — `--format=iife` wraps the bundle identically to the original hand-written IIFE. No `import`/`require` in the output.
 - **Build output committed** — `src/js/d2c-enhancements.js` is committed so jsDelivr can serve it from GitHub without CI/CD.
 - **Palette keyboard shortcut inside `buildPalette()`** — the `Ctrl+K` listener is registered inside the builder function, after `paletteOverlay` is set, to avoid a null reference if the shortcut fires before init.
+- **Service Worker via DevTools override** — `src/sw/d2c-sw.js` is mapped to `admin.d2cmedia.ca/d2c-sw.js` via a second Local Override. This file is **not processed by esbuild** — edit it directly. The SW registration runs outside the `/sites/*` pathname guard so caching applies to all admin pages.
+- **`/sites/*` pathname guard** — enhancement features (styles, TOC, palette, etc.) only initialise on `/sites/[section]` URLs. Home, `/inventory`, `/leads`, etc. are skipped. Localhost always runs (for development). The guard lives at the top of `index.js`.
 
 ## Reference Documentation (docs/)
 

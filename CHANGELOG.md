@@ -1,5 +1,25 @@
 # Changelog
 
+## 2026-02-23 — Service Worker for repeat-visit performance
+
+**Why:** Every page load on `admin.d2cmedia.ca` fetched the full set of JS bundles, stylesheets, images, and fonts from the network — roughly 11 s on a warm connection. There was no caching layer in place.
+
+**What:**
+- Added `src/sw/d2c-sw.js` — a Service Worker that uses a cache-first strategy for JS, CSS, images, and fonts. On first load it populates the cache; all subsequent loads serve assets from local disk (~1–2 s LCP).
+- The SW also intercepts requests to `use.fontawesome.com` and returns an empty 200, blocking four redundant external font requests (~1.2 s saving on each page load) since the admin panel already serves woff2 locally.
+- AJAX endpoints, Google Analytics, HTML page responses, and session management URLs are always bypassed — dynamic data is never cached.
+- Updated `devtools-loader.js` to register the SW via `navigator.serviceWorker.register('/d2c-sw.js')` on every page.
+- Added a pathname guard in `src/js/modules/index.js`: the enhancement features (styles, TOC, palette, etc.) only initialise on `/sites/*` URLs (or localhost). The SW registration runs outside this guard so caching applies to all admin pages, not just site pages.
+
+**Decision:** A DevTools Local Override for `admin.d2cmedia.ca/d2c-sw.js` makes the SW available without touching the server. The override maps the 404 URL to the local file — Chrome creates the override path when you "Save for overrides" on that URL. Cache-first was chosen over stale-while-revalidate because the assets are all content-hashed; they never change at the same URL, so staleness is not a concern.
+
+**Files:**
+- `src/sw/d2c-sw.js` — Service Worker: cache-first asset caching + FontAwesome blocking (not built by esbuild — edit directly)
+- `devtools-loader.js` — updated to register the Service Worker; requires a second DevTools override for `admin.d2cmedia.ca/d2c-sw.js`
+- `src/js/modules/index.js` — added `/sites/*` pathname guard; SW registration moved above the guard
+
+---
+
 ## 2026-02-23 — CDN loader architecture
 
 **Why:** The full enhancement script was pasted directly into the DevTools override for `sitepagesaddedjs.js`. Every change required manually updating the override file in DevTools, which doesn't persist easily across machines.
