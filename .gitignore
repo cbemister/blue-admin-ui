@@ -7,7 +7,16 @@ screenshots/
 # Compiled/hashed CSS bundles — not needed on GitHub
 src/php/
 
+# Local sandbox and HTML reference snapshots — not needed on GitHub
+*.html
+
+# Node / build tooling
+node_modules/
+
 # OS / editor
 .DS_Store
 Thumbs.db
 *.swp
+
+# HAR captures — may contain auth cookies/session tokens
+*.har
