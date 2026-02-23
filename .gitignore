@@ -1,0 +1,13 @@
+# Large reference HTML pages — local only, not needed for CDN
+src/pages/
+
+# Screenshots — local reference only
+screenshots/
+
+# Compiled/hashed CSS bundles — not needed on GitHub
+src/php/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
