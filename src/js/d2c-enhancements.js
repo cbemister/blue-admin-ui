@@ -5,7 +5,7 @@
      admin.d2cmedia.ca/assets/js/sitepagesaddedjs.js)
 
    Edit here, push to GitHub, then purge jsDelivr cache:
-     https://purge.jsdelivr.net/gh/YOUR-USERNAME/YOUR-REPO@main/src/js/d2c-enhancements.js
+     https://purge.jsdelivr.net/gh/cbemister/blue-admin-ui@main/src/js/d2c-enhancements.js
    ================================================================ */
 
 (function () {
