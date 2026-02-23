@@ -8,6 +8,7 @@ import { buildSaveIndicator } from './save-indicator.js';
 import { buildSearchHint } from './search-hint.js';
 import { buildScrollTop } from './scroll-top.js';
 import { buildFloatingSave } from './floating-save.js';
+import { buildHelpButton } from './help-button.js';
 import { prefetchSections } from './prefetch.js';
 import { buildLazySections } from './lazy-sections.js';
 
@@ -46,6 +47,7 @@ if ((_isLocal || _isSitePage) && !document.getElementById('d2c-custom-styles')) 
       buildSaveIndicator();
       buildScrollTop();
       buildFloatingSave();
+      buildHelpButton();
       prefetchSections();
     });
   });

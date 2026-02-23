@@ -22,11 +22,21 @@ A **pre-push git hook** (`.git/hooks/pre-push`) runs `npm run build` automatical
 
 **Do not edit `src/js/d2c-enhancements.js` directly** — it is the build output. Edit files in `src/js/modules/` instead.
 
+## Which files require a build vs. edit directly
+
+| File | How to change |
+|------|--------------|
+| `src/js/modules/*.js` | Edit source → `npm run build` → push |
+| `src/js/d2c-enhancements.js` | **Never edit** — overwritten by every build |
+| `devtools-loader.js` | Edit directly — it is a DevTools Local Override, not processed by esbuild. Changes are live as soon as DevTools reloads the override. |
+| `src/sw/d2c-sw.js` | Edit directly — it is a DevTools Local Override, not processed by esbuild. Changes are live immediately. |
+
 ## Repository Structure
 
 ```
 blue-admin-ui/
 ├── devtools-loader.js          # DevTools override — loads CDN script + registers SW
+├── build.js                    # esbuild script — injects __BUILD_DATE__ define
 ├── package.json                # npm scripts: build, watch
 ├── CHANGELOG.md                # Narrative log of every significant change + rationale
 ├── README.md                   # Setup and usage guide
@@ -45,8 +55,9 @@ blue-admin-ui/
 │   │       ├── search-hint.js  # Search button in header
 │   │       ├── scroll-top.js   # Scroll-to-top button
 │   │       ├── floating-save.js # Save button in right panel
-│   │       ├── lazy-sections.js # Section collapse, image deferral, localStorage session memory
-│   │       └── prefetch.js     # Idle-time prefetch of /sites/* nav links
+│   │       ├── lazy-sections.js # Section collapse, image deferral, PAGE_DEFAULTS, localStorage memory
+│   │       ├── prefetch.js     # Idle-time prefetch of /sites/* nav links
+│   │       └── help-button.js  # Header help button: build-date badge + keyboard shortcut dropdown
 │   └── sw/
 │       └── d2c-sw.js           # Service Worker — NOT built by esbuild, edit directly
 └── docs/                       # UI system documentation

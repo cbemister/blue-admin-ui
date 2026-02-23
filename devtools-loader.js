@@ -17,6 +17,24 @@
    ================================================================ */
 
 (function () {
+  // Pre-collapse all expandable section content immediately.
+  // This runs synchronously before the first paint so the user never sees
+  // the flash of all sections expanded. buildLazySections() removes this
+  // style once it has set the correct open/closed state.
+  // The 5 s timeout is a safety net: if the enhancement script fails to load
+  // (CDN down, network error) sections become visible again automatically.
+  var preCollapse = document.createElement('style');
+  preCollapse.id = 'd2c-precollapse';
+  preCollapse.textContent =
+    '#content .expandablesection+div,' +
+    '#content .expandablesection+table{display:none!important}';
+  (document.head || document.documentElement).appendChild(preCollapse);
+
+  setTimeout(function () {
+    var el = document.getElementById('d2c-precollapse');
+    if (el) el.parentNode.removeChild(el);
+  }, 5000);
+
   // Register Service Worker for asset caching.
   // On first load: fills the cache. On all subsequent loads: assets served
   // from local disk — dramatically reduces LCP for repeat visits.
@@ -32,6 +50,9 @@
   s.src = 'https://cdn.jsdelivr.net/gh/cbemister/blue-admin-ui@main/src/js/d2c-enhancements.js';
   s.onerror = function () {
     console.warn('[D2C] Enhancement script failed to load from jsDelivr');
+    // Remove pre-collapse immediately on load failure so sections are visible
+    var el = document.getElementById('d2c-precollapse');
+    if (el) el.parentNode.removeChild(el);
   };
   document.head.appendChild(s);
 })();

@@ -5,6 +5,7 @@ Chrome DevTools Local Overrides enhancement layer for `admin.d2cmedia.ca`. Adds 
 ## Features
 
 - **Performance** — Service Worker caches JS/CSS/images/fonts (cache-first) and HTML pages (stale-while-revalidate); idle-time prefetch warms the HTML cache for all other sections; repeat-visit LCP drops from ~11 s to ~1–2 s
+- **Help button** — header badge showing build date; dropdown with keyboard shortcuts and feature list
 - **Command palette** (Ctrl+K) — fuzzy search across all pages and dealerships
 - **Lazy sections** — collapses all expandable sections on load, defers image fetches until a section is opened; remembers which section was last open per page and restores it on return
 - **Section TOC** — floating right panel with jump links and collapse/expand all

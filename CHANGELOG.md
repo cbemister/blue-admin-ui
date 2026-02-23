@@ -1,5 +1,30 @@
 # Changelog
 
+## 2026-02-23 — Help button, build timestamp, page defaults
+
+**Why:** There was no visible indicator of which version of the enhancement script was running, making it impossible to confirm a new build had gone live. On first visit to a page every section was collapsed with no hint of where to start, and there was a brief flash of all sections expanded before `buildLazySections()` ran.
+
+**What:**
+- Added `src/js/modules/help-button.js` — `buildHelpButton()`: injects a `#d2c-help-btn` widget into `#topRight` containing a build-date badge (`#d2c-version-badge`) and a dropdown (`#d2c-help-dropdown`) listing keyboard shortcuts and active features. Hides the native `#needHelp` button and replaces it. Dropdown closes on any outside click.
+- Added `build.js` — custom esbuild build script that captures the current local timestamp and injects it as `__BUILD_DATE__` (an esbuild `define`) at bundle time. Updated `package.json` `build` and `watch` scripts from inline esbuild CLI to `node build.js` / `node build.js --watch`.
+- Updated `src/js/modules/lazy-sections.js`: added `PAGE_DEFAULTS` config map (per-page, per-path) so a specific section auto-opens on first visit before any saved state exists. Supports a simple string match or a `['parent', 'child']` array for nested sections. Added `openDefault()`, `findByText()`, and `openSection()` helpers. The `finally` block now removes the `#d2c-precollapse` style element after setup.
+- Updated `devtools-loader.js`: synchronously injects a `#d2c-precollapse` `<style>` element before first paint that hides all section content (`#content .expandablesection+div, …+table`). Eliminates the flash of expanded sections before `buildLazySections()` fires. A 5 s safety timeout and an `onerror` handler on the CDN `<script>` remove the style if the enhancement script never loads.
+- Updated `src/js/modules/stylesheet.js`: replaced broad `nav.navbar .btn.btn-primary` overrides (which over-reached) with a targeted `#needHelp,li:has(#needHelp){display:none!important}` rule; removed erroneous `!important` from `.button{display:inline-flex}`; added CSS for all `#d2c-help-btn` components.
+
+**Decision:** The pre-collapse style must live in `devtools-loader.js` (not in the enhancement module) because the CDN `<script>` is async — there is a ~200–500 ms window between page parse and script execution where the page's own CSS renders all sections open. Injecting the hide rule synchronously in the loader eliminates this gap. The 5 s timeout and `onerror` path prevent permanent content loss if the CDN is unreachable. `__BUILD_DATE__` is injected by the build script at bundle time (not hardcoded) so the version badge is always accurate without a manual update step.
+
+**Files:**
+- `src/js/modules/help-button.js` — help button, version badge, keyboard shortcut dropdown
+- `build.js` — esbuild script that injects `__BUILD_DATE__` define
+- `package.json` — build/watch scripts now use `node build.js`
+- `devtools-loader.js` — pre-collapse style injection + 5 s safety timeout
+- `src/js/modules/lazy-sections.js` — PAGE_DEFAULTS, openDefault(), findByText(), openSection(), pre-collapse cleanup
+- `src/js/modules/stylesheet.js` — help button CSS, #needHelp hide, .button fix
+- `src/js/modules/index.js` — imports buildHelpButton()
+- `src/js/d2c-enhancements.js` — build output (do not edit directly)
+
+---
+
 ## 2026-02-23 — Lazy sections, prefetch, and SW HTML caching
 
 **Why:** Page loads on `/sites/*` pages were slow in two ways: all expandable sections rendered (and fetched images for) every section at once, and navigating between admin sections still required a full network round-trip despite the SW already caching assets.

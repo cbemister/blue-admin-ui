@@ -32,9 +32,8 @@ export function injectStyles() {
     '.navbar-top-links>li>a:hover{background:var(--bg)!important;color:var(--text)!important}',
     /* Hide dealer selector — command palette replaces it */
     '#dealername,.top-dropdown.brandname{display:none!important}',
-    /* Tone down the "Need help?" btn-primary */
-    'nav.navbar .btn.btn-primary,nav.navbar a.btn-primary{background:transparent!important;border:1px solid var(--border-dark)!important;color:var(--text-muted)!important;font-size:12px!important;padding:4px 10px!important;box-shadow:none!important;white-space:nowrap!important;line-height:1.4!important}',
-    'nav.navbar .btn.btn-primary:hover,nav.navbar a.btn-primary:hover{background:var(--bg)!important;color:var(--text)!important}',
+    /* Hide original "Need help?" button — replaced by our custom help menu */
+    '#needHelp,li:has(#needHelp){display:none!important}',
     /* Hide website / help links — not needed with command palette */
     '#header_website_link{display:none!important}',
 
@@ -97,7 +96,7 @@ export function injectStyles() {
     '.btn[style*="background"]{color:#fff!important}',
     '.btn-block{width:100%!important;display:flex!important}',
     /* D2C custom button classes (not Bootstrap) */
-    '.button,.buttonSmall,input.buttonSmall,a.buttonSmall{display:inline-flex!important;align-items:center!important;justify-content:center!important;padding:8px 20px!important;font-size:13px!important;font-weight:600!important;color:#fff!important;background:var(--d2c-navy)!important;border:none!important;border-radius:var(--r-md)!important;cursor:pointer!important;text-decoration:none!important;font-family:var(--font)!important;transition:background var(--t)!important}',
+    '.button,.buttonSmall,input.buttonSmall,a.buttonSmall{display:inline-flex;align-items:center!important;justify-content:center!important;padding:8px 20px!important;font-size:13px!important;font-weight:600!important;color:#fff!important;background:var(--d2c-navy)!important;border:none!important;border-radius:var(--r-md)!important;cursor:pointer!important;text-decoration:none!important;font-family:var(--font)!important;transition:background var(--t)!important}',
     '.button:hover,.buttonSmall:hover{background:#004d90!important;color:#fff!important}',
     '.buttonSmall{padding:5px 12px!important;font-size:12px!important}',
     /* Save button — lives inside #d2c-right-panel below section TOC */
@@ -235,6 +234,26 @@ export function injectStyles() {
     '#d2c-search-hint .fa{font-size:13px!important;color:var(--text-light)!important}',
     '.d2c-hint-label{font-size:13px!important;color:var(--text-muted)!important}',
     '.d2c-hint-kbd{display:inline-block!important;padding:1px 6px!important;border:1px solid var(--border-dark)!important;border-radius:3px!important;font-size:10px!important;font-family:var(--mono)!important;color:var(--text-muted)!important;background:var(--surface)!important;line-height:1.6!important;margin-left:4px!important}',
+
+    /* Version badge + Help button */
+    '#d2c-help-btn{position:relative!important;display:inline-flex!important;align-items:center!important;gap:4px!important;flex-shrink:0!important}',
+    '#d2c-version-badge{font-size:11px!important;color:var(--text-light)!important;white-space:nowrap!important;padding:2px 0!important;pointer-events:none!important}',
+    '#d2c-help-toggle{background:transparent!important;border:none!important;cursor:pointer!important;padding:4px 8px!important;color:var(--text-muted)!important;border-radius:var(--r-md)!important;font-size:13px!important;transition:background var(--t),color var(--t)!important;font-family:var(--font)!important;display:flex!important;align-items:center!important;line-height:1!important}',
+    '#d2c-help-toggle:hover{background:var(--bg)!important;color:var(--text)!important}',
+    '#d2c-help-toggle .fa{font-size:14px!important}',
+    '#d2c-help-dropdown{display:none!important;position:absolute!important;top:calc(100% + 6px)!important;right:0!important;width:260px!important;background:var(--surface)!important;border:1px solid var(--border)!important;border-radius:var(--r-lg)!important;box-shadow:var(--shadow-lg)!important;z-index:1100!important}',
+    '#d2c-help-dropdown.d2c-help-open{display:block!important}',
+    '.d2c-help-header{padding:12px 14px!important;border-bottom:1px solid var(--border)!important;display:flex!important;flex-direction:column!important;gap:2px!important}',
+    '.d2c-help-title{font-size:13px!important;font-weight:600!important;color:var(--text)!important}',
+    '.d2c-help-version{font-size:11px!important;color:var(--text-light)!important}',
+    '.d2c-help-section{padding:8px 14px 3px!important;font-size:10px!important;font-weight:700!important;color:var(--text-muted)!important;text-transform:uppercase!important;letter-spacing:.5px!important}',
+    '.d2c-help-table{width:100%!important;padding:2px 8px 6px!important;border-collapse:collapse!important}',
+    '.d2c-help-table td{padding:3px 6px!important;font-size:12px!important;color:var(--text)!important;border:none!important}',
+    '.d2c-help-table td:first-child{width:110px!important;white-space:nowrap!important}',
+    '.d2c-help-table kbd{display:inline-block!important;padding:2px 5px!important;border:1px solid var(--border-dark)!important;border-radius:4px!important;font-size:10px!important;font-family:var(--mono)!important;color:var(--text-muted)!important;background:var(--bg)!important;line-height:1.6!important}',
+    '.d2c-help-list{list-style:none!important;margin:0!important;padding:4px 14px 10px!important}',
+    '.d2c-help-list li{font-size:12px!important;color:var(--text-muted)!important;padding:2px 0 2px 10px!important;position:relative!important}',
+    '.d2c-help-list li::before{content:"\\00B7"!important;position:absolute!important;left:0!important;color:var(--text-light)!important}',
   ].join('\n');
 
   var styleEl = document.createElement('style');

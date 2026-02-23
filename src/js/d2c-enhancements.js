@@ -32,9 +32,8 @@
       ".navbar-top-links>li>a:hover{background:var(--bg)!important;color:var(--text)!important}",
       /* Hide dealer selector — command palette replaces it */
       "#dealername,.top-dropdown.brandname{display:none!important}",
-      /* Tone down the "Need help?" btn-primary */
-      "nav.navbar .btn.btn-primary,nav.navbar a.btn-primary{background:transparent!important;border:1px solid var(--border-dark)!important;color:var(--text-muted)!important;font-size:12px!important;padding:4px 10px!important;box-shadow:none!important;white-space:nowrap!important;line-height:1.4!important}",
-      "nav.navbar .btn.btn-primary:hover,nav.navbar a.btn-primary:hover{background:var(--bg)!important;color:var(--text)!important}",
+      /* Hide original "Need help?" button — replaced by our custom help menu */
+      "#needHelp,li:has(#needHelp){display:none!important}",
       /* Hide website / help links — not needed with command palette */
       "#header_website_link{display:none!important}",
       /* Top nav bar — explicit height chain so links fill correctly */
@@ -91,7 +90,7 @@
       '.btn[style*="background"]{color:#fff!important}',
       ".btn-block{width:100%!important;display:flex!important}",
       /* D2C custom button classes (not Bootstrap) */
-      ".button,.buttonSmall,input.buttonSmall,a.buttonSmall{display:inline-flex!important;align-items:center!important;justify-content:center!important;padding:8px 20px!important;font-size:13px!important;font-weight:600!important;color:#fff!important;background:var(--d2c-navy)!important;border:none!important;border-radius:var(--r-md)!important;cursor:pointer!important;text-decoration:none!important;font-family:var(--font)!important;transition:background var(--t)!important}",
+      ".button,.buttonSmall,input.buttonSmall,a.buttonSmall{display:inline-flex;align-items:center!important;justify-content:center!important;padding:8px 20px!important;font-size:13px!important;font-weight:600!important;color:#fff!important;background:var(--d2c-navy)!important;border:none!important;border-radius:var(--r-md)!important;cursor:pointer!important;text-decoration:none!important;font-family:var(--font)!important;transition:background var(--t)!important}",
       ".button:hover,.buttonSmall:hover{background:#004d90!important;color:#fff!important}",
       ".buttonSmall{padding:5px 12px!important;font-size:12px!important}",
       /* Save button — lives inside #d2c-right-panel below section TOC */
@@ -215,7 +214,26 @@
       "#d2c-search-hint>a:hover{background:var(--bg)!important;color:var(--text)!important}",
       "#d2c-search-hint .fa{font-size:13px!important;color:var(--text-light)!important}",
       ".d2c-hint-label{font-size:13px!important;color:var(--text-muted)!important}",
-      ".d2c-hint-kbd{display:inline-block!important;padding:1px 6px!important;border:1px solid var(--border-dark)!important;border-radius:3px!important;font-size:10px!important;font-family:var(--mono)!important;color:var(--text-muted)!important;background:var(--surface)!important;line-height:1.6!important;margin-left:4px!important}"
+      ".d2c-hint-kbd{display:inline-block!important;padding:1px 6px!important;border:1px solid var(--border-dark)!important;border-radius:3px!important;font-size:10px!important;font-family:var(--mono)!important;color:var(--text-muted)!important;background:var(--surface)!important;line-height:1.6!important;margin-left:4px!important}",
+      /* Version badge + Help button */
+      "#d2c-help-btn{position:relative!important;display:inline-flex!important;align-items:center!important;gap:4px!important;flex-shrink:0!important}",
+      "#d2c-version-badge{font-size:11px!important;color:var(--text-light)!important;white-space:nowrap!important;padding:2px 0!important;pointer-events:none!important}",
+      "#d2c-help-toggle{background:transparent!important;border:none!important;cursor:pointer!important;padding:4px 8px!important;color:var(--text-muted)!important;border-radius:var(--r-md)!important;font-size:13px!important;transition:background var(--t),color var(--t)!important;font-family:var(--font)!important;display:flex!important;align-items:center!important;line-height:1!important}",
+      "#d2c-help-toggle:hover{background:var(--bg)!important;color:var(--text)!important}",
+      "#d2c-help-toggle .fa{font-size:14px!important}",
+      "#d2c-help-dropdown{display:none!important;position:absolute!important;top:calc(100% + 6px)!important;right:0!important;width:260px!important;background:var(--surface)!important;border:1px solid var(--border)!important;border-radius:var(--r-lg)!important;box-shadow:var(--shadow-lg)!important;z-index:1100!important}",
+      "#d2c-help-dropdown.d2c-help-open{display:block!important}",
+      ".d2c-help-header{padding:12px 14px!important;border-bottom:1px solid var(--border)!important;display:flex!important;flex-direction:column!important;gap:2px!important}",
+      ".d2c-help-title{font-size:13px!important;font-weight:600!important;color:var(--text)!important}",
+      ".d2c-help-version{font-size:11px!important;color:var(--text-light)!important}",
+      ".d2c-help-section{padding:8px 14px 3px!important;font-size:10px!important;font-weight:700!important;color:var(--text-muted)!important;text-transform:uppercase!important;letter-spacing:.5px!important}",
+      ".d2c-help-table{width:100%!important;padding:2px 8px 6px!important;border-collapse:collapse!important}",
+      ".d2c-help-table td{padding:3px 6px!important;font-size:12px!important;color:var(--text)!important;border:none!important}",
+      ".d2c-help-table td:first-child{width:110px!important;white-space:nowrap!important}",
+      ".d2c-help-table kbd{display:inline-block!important;padding:2px 5px!important;border:1px solid var(--border-dark)!important;border-radius:4px!important;font-size:10px!important;font-family:var(--mono)!important;color:var(--text-muted)!important;background:var(--bg)!important;line-height:1.6!important}",
+      ".d2c-help-list{list-style:none!important;margin:0!important;padding:4px 14px 10px!important}",
+      ".d2c-help-list li{font-size:12px!important;color:var(--text-muted)!important;padding:2px 0 2px 10px!important;position:relative!important}",
+      '.d2c-help-list li::before{content:"\\00B7"!important;position:absolute!important;left:0!important;color:var(--text-light)!important}'
     ].join("\n");
     var styleEl = document.createElement("style");
     styleEl.id = "d2c-custom-styles";
@@ -815,6 +833,41 @@
     });
   }
 
+  // src/js/modules/help-button.js
+  var BUILD_DATE = "2026-02-23 14:20";
+  function buildHelpButton() {
+    if (document.getElementById("d2c-help-btn")) return;
+    var topRight = document.getElementById("topRight");
+    if (!topRight) return;
+    var needHelp = document.getElementById("needHelp");
+    if (needHelp) {
+      var li = needHelp.closest("li");
+      if (li) li.style.display = "none";
+    }
+    var dateLabel = _formatDate(BUILD_DATE);
+    var el = document.createElement("div");
+    el.id = "d2c-help-btn";
+    el.innerHTML = '<span id="d2c-version-badge" title="Enhancement script last updated">' + dateLabel + '</span><button id="d2c-help-toggle" title="D2C Enhancements help"><i class="fa fa-question-circle"></i></button><div id="d2c-help-dropdown"><div class="d2c-help-header"><span class="d2c-help-title">D2C Enhancements</span><span class="d2c-help-version">Updated ' + dateLabel + '</span></div><div class="d2c-help-section">Keyboard Shortcuts</div><table class="d2c-help-table"><tr><td><kbd>Ctrl+K</kbd></td><td>Open command palette</td></tr><tr><td><kbd>\u2191 / \u2193</kbd></td><td>Navigate items</td></tr><tr><td><kbd>Enter</kbd></td><td>Go to selection</td></tr><tr><td><kbd>Esc</kbd></td><td>Close palette</td></tr></table><div class="d2c-help-section">Features</div><ul class="d2c-help-list"><li>Sticky header with breadcrumb</li><li>Section table of contents (right panel)</li><li>Dealer navigation (left panel)</li><li>Ctrl+K command palette for pages &amp; dealers</li><li>Floating save button + save status indicator</li><li>Section auto-collapse &amp; session memory</li><li>Idle-time prefetch of nav links</li></ul></div>';
+    var toggle = el.querySelector("#d2c-help-toggle");
+    var dropdown = el.querySelector("#d2c-help-dropdown");
+    toggle.addEventListener("click", function(e) {
+      e.stopPropagation();
+      dropdown.classList.toggle("d2c-help-open");
+    });
+    document.addEventListener("click", function() {
+      dropdown.classList.remove("d2c-help-open");
+    });
+    topRight.appendChild(el);
+  }
+  function _formatDate(iso) {
+    var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    var parts = iso.split(" ");
+    var d = parts[0].split("-");
+    var label = months[parseInt(d[1], 10) - 1] + " " + parseInt(d[2], 10);
+    if (parts[1]) label += " \xB7 " + parts[1];
+    return label;
+  }
+
   // src/js/modules/prefetch.js
   function prefetchSections() {
     var nav = document.querySelector(".topnav#desktopnav");
@@ -850,6 +903,12 @@
   }
 
   // src/js/modules/lazy-sections.js
+  var PAGE_DEFAULTS = {
+    // Nested: ['parent section title', 'child section title'] (case-insensitive partial match)
+    "/sites/homepage": ["carousel", "dealer banners"],
+    "/sites/our-team": "add contact"
+    // '/sites/promotions': 'web specials',  // fill in once section title is confirmed
+  };
   var _storageKey = "d2c-section:" + window.location.pathname;
   var _skipSave = false;
   function buildLazySections() {
@@ -881,22 +940,64 @@
       } catch (e) {
       }
       if (lastId) {
-        var target = sections.find(function(s) {
+        var saved = sections.find(function(s) {
           return s.id === lastId;
         });
-        if (target) {
-          if (target.classList.contains("closed")) target.click();
-          restoreImages(getContentDiv(target));
-          scrollToSection(target);
+        if (saved) {
+          openSection(saved);
+          scrollToSection(saved);
+          return;
         }
       }
+      openDefault(sections);
     } finally {
       _skipSave = false;
+      var preCollapse = document.getElementById("d2c-precollapse");
+      if (preCollapse) preCollapse.parentNode.removeChild(preCollapse);
     }
+  }
+  function openDefault(sections) {
+    var cfg = PAGE_DEFAULTS[window.location.pathname];
+    if (!cfg) return;
+    if (typeof cfg === "string") {
+      var target = findByText(sections, cfg);
+      if (!target) return;
+      openSection(target);
+      scrollToSection(target);
+    } else if (Array.isArray(cfg) && cfg.length >= 1) {
+      var parent = findByText(sections, cfg[0]);
+      if (!parent) return;
+      if (cfg[1]) {
+        if (parent.classList.contains("closed")) parent.click();
+        var parentContent = getContentDiv(parent);
+        if (parentContent) {
+          var nested = Array.from(parentContent.querySelectorAll(".expandablesection"));
+          var child = findByText(nested, cfg[1]);
+          if (child) {
+            openSection(child);
+            scrollToSection(child);
+            return;
+          }
+        }
+      }
+      openSection(parent);
+      scrollToSection(parent);
+    }
+  }
+  function findByText(sections, text) {
+    var needle = text.toLowerCase();
+    return sections.find(function(s) {
+      var label = s.querySelector(".expandableHeaderText, .first") || s;
+      return label.textContent.toLowerCase().includes(needle);
+    }) || null;
   }
   function getContentDiv(section) {
     var next = section.nextElementSibling;
     return next && next.tagName === "DIV" ? next : null;
+  }
+  function openSection(section) {
+    if (section.classList.contains("closed")) section.click();
+    restoreImages(getContentDiv(section));
   }
   function deferImages(content) {
     if (!content) return;
@@ -948,6 +1049,7 @@
         buildSaveIndicator();
         buildScrollTop();
         buildFloatingSave();
+        buildHelpButton();
         prefetchSections();
       });
     });
