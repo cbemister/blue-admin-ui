@@ -1,6 +1,4 @@
-// __BUILD_DATE__ is injected by build.js (esbuild define) as "YYYY-MM-DD HH:MM UTC"
-/* global __BUILD_DATE__ */
-var BUILD_DATE = __BUILD_DATE__;
+import { BUILD_DATE } from './build-date.js';
 
 export function buildHelpButton() {
   if (document.getElementById('d2c-help-btn')) return;

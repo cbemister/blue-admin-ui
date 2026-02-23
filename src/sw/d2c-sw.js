@@ -13,7 +13,7 @@
 //   - Block requests to use.fontawesome.com (site has local woff2 copies — saves ~1.2s)
 //   - Skip AJAX endpoints entirely (never cache dynamic data)
 
-var CACHE_NAME = 'd2c-admin-v2';
+var CACHE_NAME = 'd2c-admin-v3';
 var HTML_CACHE_NAME = 'd2c-admin-html-v1';
 
 // Responses for these origins/paths are always fetched fresh (never cached)
@@ -153,6 +153,28 @@ self.addEventListener('fetch', function (event) {
           }).catch(function () { return cached; });
 
           // Serve stale immediately; background fetch keeps the cache current
+          return cached || networkFetch;
+        });
+      })
+    );
+    return;
+  }
+
+  // Stale-while-revalidate for the D2C enhancement script from jsDelivr.
+  // Cache-first would serve the old version indefinitely after a push.
+  // Stale-while-revalidate gives instant load from cache while always fetching
+  // a fresh copy in the background so the next page load gets the update.
+  if (url.hostname === 'cdn.jsdelivr.net' && url.pathname.includes('d2c-enhancements.js')) {
+    event.respondWith(
+      caches.open(CACHE_NAME).then(function (cache) {
+        return cache.match(req).then(function (cached) {
+          var networkFetch = fetch(req).then(function (response) {
+            if (response && response.ok) {
+              cache.put(req, response.clone());
+            }
+            return response;
+          }).catch(function () { return cached; });
+
           return cached || networkFetch;
         });
       })
