@@ -843,7 +843,7 @@
   }
 
   // src/js/modules/help-button.js
-  var BUILD_DATE = "2026-02-23 16:41";
+  var BUILD_DATE = "2026-02-23 16:43";
   function buildHelpButton() {
     if (document.getElementById("d2c-help-btn")) return;
     var topRight = document.getElementById("topRight");
