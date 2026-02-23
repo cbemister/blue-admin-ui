@@ -6,12 +6,15 @@
 //   Local file: <this file>
 //
 // Strategy:
+//   - Stale-while-revalidate for same-origin HTML pages:
+//       serve cached HTML instantly, fetch fresh copy in background
 //   - Cache-first for JS / CSS / images / fonts (assets rarely change)
-//   - Network-first for HTML pages (always want fresh page content)
+//   - Cache CORS responses (CDN assets with Access-Control headers) in addition to same-origin
 //   - Block requests to use.fontawesome.com (site has local woff2 copies — saves ~1.2s)
 //   - Skip AJAX endpoints entirely (never cache dynamic data)
 
-var CACHE_NAME = 'd2c-admin-v1';
+var CACHE_NAME = 'd2c-admin-v2';
+var HTML_CACHE_NAME = 'd2c-admin-html-v1';
 
 // Responses for these origins/paths are always fetched fresh (never cached)
 var NO_CACHE_PATTERNS = [
@@ -23,7 +26,7 @@ var NO_CACHE_PATTERNS = [
   /addUuid/,
 ];
 
-// Only cache these content-types (everything else passes through)
+// Only cache these content-types for the asset cache (everything else passes through)
 var CACHEABLE_TYPES = [
   'text/css',
   'text/javascript',
@@ -41,7 +44,7 @@ var CACHEABLE_TYPES = [
   'application/vnd.ms-fontobject',
 ];
 
-self.addEventListener('install', function (event) {
+self.addEventListener('install', function () {
   // Activate immediately — don't wait for old tabs to close
   self.skipWaiting();
 });
@@ -52,7 +55,7 @@ self.addEventListener('activate', function (event) {
     caches.keys().then(function (keys) {
       return Promise.all(
         keys
-          .filter(function (key) { return key !== CACHE_NAME; })
+          .filter(function (key) { return key !== CACHE_NAME && key !== HTML_CACHE_NAME; })
           .map(function (key) { return caches.delete(key); })
       );
     }).then(function () {
@@ -72,7 +75,6 @@ self.addEventListener('fetch', function (event) {
   }
 
   // Block external FontAwesome — admin.d2cmedia.ca already serves woff2 locally
-  // Returning an empty 200 prevents the 4 × ~1.2 s font requests (~1.2 s total saving)
   if (url.hostname.includes('fontawesome.com')) {
     event.respondWith(new Response('', { status: 200 }));
     return;
@@ -84,11 +86,31 @@ self.addEventListener('fetch', function (event) {
   // Skip tracking / AJAX patterns — never cache dynamic data
   if (NO_CACHE_PATTERNS.some(function (p) { return p.test(req.url); })) return;
 
-  // Skip HTML page requests — always serve fresh from server
   var accept = req.headers.get('accept') || '';
-  if (accept.includes('text/html')) return;
 
-  // Cache-first strategy for all remaining requests
+  // Stale-while-revalidate for same-origin HTML pages:
+  // Serve cached HTML instantly, then fetch a fresh copy in the background.
+  // This makes repeat navigation to any admin page nearly instant.
+  if (accept.includes('text/html') && url.hostname === self.location.hostname) {
+    event.respondWith(
+      caches.open(HTML_CACHE_NAME).then(function (cache) {
+        return cache.match(req).then(function (cached) {
+          var networkFetch = fetch(req).then(function (response) {
+            if (response && response.ok) {
+              cache.put(req, response.clone());
+            }
+            return response;
+          }).catch(function () { return cached; });
+
+          // Serve stale immediately; let background fetch update the cache
+          return cached || networkFetch;
+        });
+      })
+    );
+    return;
+  }
+
+  // Cache-first strategy for all remaining requests (assets)
   event.respondWith(
     caches.match(req).then(function (cached) {
       if (cached) {
@@ -96,8 +118,8 @@ self.addEventListener('fetch', function (event) {
       }
 
       return fetch(req).then(function (response) {
-        // Don't cache errors or opaque (cross-origin) responses
-        if (!response || !response.ok || response.type !== 'basic') {
+        // Skip opaque responses (cross-origin without CORS headers) — status unknown, risky to cache
+        if (!response || !response.ok || response.type === 'opaque') {
           return response;
         }
 

@@ -8,6 +8,8 @@ import { buildSaveIndicator } from './save-indicator.js';
 import { buildSearchHint } from './search-hint.js';
 import { buildScrollTop } from './scroll-top.js';
 import { buildFloatingSave } from './floating-save.js';
+import { prefetchSections } from './prefetch.js';
+import { buildLazySections } from './lazy-sections.js';
 
 // Register Service Worker on every page — must run outside the /sites/ guard so assets
 // are cached regardless of which admin page is visited first.
@@ -24,9 +26,10 @@ if ((_isLocal || _isSitePage) && !document.getElementById('d2c-custom-styles')) 
   injectStyles();
 
   onReady(function () {
-    // Critical path: layout measurement runs immediately
+    // Critical path: layout measurement + section setup run immediately
     measureHeader();
     window.addEventListener('resize', measureHeader, { passive: true });
+    buildLazySections();
 
     // Non-critical UI: defer until browser is idle so page interactions
     // (forms, dropdowns, CKEditor init) are not delayed
@@ -43,6 +46,7 @@ if ((_isLocal || _isSitePage) && !document.getElementById('d2c-custom-styles')) 
       buildSaveIndicator();
       buildScrollTop();
       buildFloatingSave();
+      prefetchSections();
     });
   });
 }

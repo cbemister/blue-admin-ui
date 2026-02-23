@@ -20,3 +20,7 @@ Thumbs.db
 
 # HAR captures — may contain auth cookies/session tokens
 *.har
+
+
+# Claude Settings Files
+.claude/

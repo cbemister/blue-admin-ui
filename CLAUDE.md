@@ -44,7 +44,9 @@ blue-admin-ui/
 │   │       ├── save-indicator.js # AJAX save status
 │   │       ├── search-hint.js  # Search button in header
 │   │       ├── scroll-top.js   # Scroll-to-top button
-│   │       └── floating-save.js # Save button in right panel
+│   │       ├── floating-save.js # Save button in right panel
+│   │       ├── lazy-sections.js # Section collapse, image deferral, localStorage session memory
+│   │       └── prefetch.js     # Idle-time prefetch of /sites/* nav links
 │   └── sw/
 │       └── d2c-sw.js           # Service Worker — NOT built by esbuild, edit directly
 └── docs/                       # UI system documentation

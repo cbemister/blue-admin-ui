@@ -1,5 +1,28 @@
 # Changelog
 
+## 2026-02-23 — Lazy sections, prefetch, and SW HTML caching
+
+**Why:** Page loads on `/sites/*` pages were slow in two ways: all expandable sections rendered (and fetched images for) every section at once, and navigating between admin sections still required a full network round-trip despite the SW already caching assets.
+
+**What:**
+- Added `src/js/modules/lazy-sections.js` — `buildLazySections()`: collapses all sections on load and removes `src` from images in collapsed sections (cancelling in-flight requests). Saves the last-open section ID to `localStorage` per page-path and auto-expands + scrolls to it on the next visit. Images in a section are restored when the user opens it.
+- Added `src/js/modules/prefetch.js` — `prefetchSections()`: at browser-idle time, fetches every unique `/sites/*` link from the nav bar (excluding the current page) so the SW can populate its HTML cache. On the next visit, the stale-while-revalidate handler serves the page instantly.
+- Updated `src/sw/d2c-sw.js`: added a stale-while-revalidate strategy for same-origin HTML pages (new `HTML_CACHE_NAME = 'd2c-admin-html-v1'`). Serve cached HTML immediately, update the cache in the background. Changed the opaque-response guard from `response.type !== 'basic'` to `response.type === 'opaque'` so CORS asset responses (CDN files with proper headers) are now cached. Bumped asset cache name to `d2c-admin-v2` to invalidate the old cache on activate.
+- Updated `src/js/modules/index.js`: imports and calls `buildLazySections()` (critical path, before idle defer) and `prefetchSections()` (deferred).
+- Added `.claude/` to `.gitignore`.
+
+**Decision:** Lazy image deferral via `img.removeAttribute('src')` works in Chrome because removing the attribute cancels the in-flight network request — no MutationObserver or IntersectionObserver needed. The prefetch + SW stale-while-revalidate combination was chosen over `<link rel="prefetch">` because the SW handler ensures the cached response is actually used on navigation, whereas link-prefetch only warms the browser's HTTP cache, which may be bypassed.
+
+**Files:**
+- `src/js/modules/lazy-sections.js` — section collapse, image deferral, localStorage session memory
+- `src/js/modules/prefetch.js` — idle-time prefetch of /sites/* nav links
+- `src/js/modules/index.js` — imports both new modules
+- `src/sw/d2c-sw.js` — stale-while-revalidate HTML strategy, CORS asset caching, cache v2
+- `src/js/d2c-enhancements.js` — build output (do not edit directly)
+- `.gitignore` — added `.claude/`
+
+---
+
 ## 2026-02-23 — Service Worker for repeat-visit performance
 
 **Why:** Every page load on `admin.d2cmedia.ca` fetched the full set of JS bundles, stylesheets, images, and fonts from the network — roughly 11 s on a warm connection. There was no caching layer in place.

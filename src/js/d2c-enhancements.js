@@ -815,6 +815,111 @@
     });
   }
 
+  // src/js/modules/prefetch.js
+  function prefetchSections() {
+    var nav = document.querySelector(".topnav#desktopnav");
+    if (!nav) return;
+    var current = window.location.pathname;
+    var origin = window.location.origin;
+    var seen = {};
+    var links = [];
+    var anchors = nav.querySelectorAll("a[href]");
+    for (var i = 0; i < anchors.length; i++) {
+      var href = anchors[i].href;
+      try {
+        var u = new URL(href);
+        if (u.origin === origin && /^\/sites\//.test(u.pathname) && u.pathname !== current && !seen[u.pathname]) {
+          seen[u.pathname] = true;
+          links.push(href);
+        }
+      } catch (e) {
+      }
+    }
+    if (!links.length) return;
+    var fire = function() {
+      links.forEach(function(href2) {
+        fetch(href2, { credentials: "same-origin" }).catch(function() {
+        });
+      });
+    };
+    if (typeof requestIdleCallback === "function") {
+      requestIdleCallback(fire, { timeout: 6e3 });
+    } else {
+      setTimeout(fire, 3e3);
+    }
+  }
+
+  // src/js/modules/lazy-sections.js
+  var _storageKey = "d2c-section:" + window.location.pathname;
+  var _skipSave = false;
+  function buildLazySections() {
+    var sections = Array.from(document.querySelectorAll("#content h2.expandablesection"));
+    if (!sections.length) return;
+    sections.forEach(function(s, i) {
+      if (!s.id) s.id = "d2c-s" + i;
+    });
+    sections.forEach(function(s) {
+      s.addEventListener("click", function() {
+        if (_skipSave) return;
+        if (!s.classList.contains("closed")) return;
+        restoreImages(getContentDiv(s));
+        try {
+          localStorage.setItem(_storageKey, s.id);
+        } catch (e) {
+        }
+      });
+    });
+    _skipSave = true;
+    try {
+      sections.forEach(function(s) {
+        if (s.classList.contains("open")) s.click();
+        deferImages(getContentDiv(s));
+      });
+      var lastId;
+      try {
+        lastId = localStorage.getItem(_storageKey);
+      } catch (e) {
+      }
+      if (lastId) {
+        var target = sections.find(function(s) {
+          return s.id === lastId;
+        });
+        if (target) {
+          if (target.classList.contains("closed")) target.click();
+          restoreImages(getContentDiv(target));
+          scrollToSection(target);
+        }
+      }
+    } finally {
+      _skipSave = false;
+    }
+  }
+  function getContentDiv(section) {
+    var next = section.nextElementSibling;
+    return next && next.tagName === "DIV" ? next : null;
+  }
+  function deferImages(content) {
+    if (!content) return;
+    content.querySelectorAll("img[src]").forEach(function(img) {
+      img.setAttribute("data-lazy-src", img.getAttribute("src"));
+      img.removeAttribute("src");
+    });
+  }
+  function restoreImages(content) {
+    if (!content) return;
+    content.querySelectorAll("img[data-lazy-src]").forEach(function(img) {
+      img.setAttribute("src", img.getAttribute("data-lazy-src"));
+      img.removeAttribute("data-lazy-src");
+    });
+  }
+  function scrollToSection(section) {
+    var headerH = parseInt(
+      getComputedStyle(document.documentElement).getPropertyValue("--header-height")
+    ) || 95;
+    var top = section.getBoundingClientRect().top + window.scrollY - headerH - 12;
+    window.scrollTo({ top, behavior: "smooth" });
+  }
+
   // src/js/modules/index.js
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("/d2c-sw.js").catch(function() {
@@ -828,6 +933,7 @@
     onReady(function() {
       measureHeader();
       window.addEventListener("resize", measureHeader, { passive: true });
+      buildLazySections();
       var defer = typeof requestIdleCallback === "function" ? function(fn) {
         requestIdleCallback(fn, { timeout: 2e3 });
       } : function(fn) {
@@ -842,6 +948,7 @@
         buildSaveIndicator();
         buildScrollTop();
         buildFloatingSave();
+        prefetchSections();
       });
     });
   }
