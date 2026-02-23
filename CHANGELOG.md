@@ -1,5 +1,26 @@
 # Changelog
 
+## 2026-02-23 — Button fixes, earlier image deferral, SW guard
+
+**Why:** Action buttons in the full-width layout were pushed off-screen by an inline `margin-right:20%` that D2C injects. Image lazy-deferral was running too late (inside `onReady`), giving the browser time to start prefetching deferred images before their `src` was removed. The Service Worker's fetch handler could throw on non-HTTP URLs injected by browser extensions.
+
+**What:**
+- `stylesheet.js`: refined `.button`/`.buttonSmall` sizing — padding `8px 20px` → `6px 16px`, font-weight `600` → `500`, added `white-space:nowrap`. Added `#content input.buttonSmall[style]{margin-right:0!important}` to neutralise the inline `margin-right:20%` D2C applies to action buttons in full-width mode.
+- `index.js`: moved `buildLazySections()` from inside `onReady()` to a direct `DOMContentLoaded` listener (or sync call if DOM is already parsed), so image `src` removal happens as early as possible before browser prefetch kicks in.
+- `d2c-sw.js`: added a protocol guard — skip fetch events for non-HTTP/HTTPS schemes (`chrome-extension://`, `data:`, `blob:`, etc.) that would previously throw.
+- `devtools-loader.js`: added a `.then()` log to SW registration reporting active state and controller presence, making it easier to confirm the SW is running during development.
+
+**Decision:** Moving `buildLazySections()` earlier is safe because it only reads DOM state — it has no dependency on header measurement or any other `onReady` work. The `#content input.buttonSmall[style]` rule uses an attribute selector to target only elements that carry an inline `style` attribute, so it won't affect buttons that haven't been touched by D2C's inline styles. The SW protocol guard follows the standard Chrome SW pattern for avoiding errors from extension-injected fetch events.
+
+**Files:**
+- `src/js/modules/stylesheet.js` — button sizing and inline margin override
+- `src/js/modules/index.js` — buildLazySections moved to DOMContentLoaded
+- `src/sw/d2c-sw.js` — non-HTTP protocol guard
+- `devtools-loader.js` — SW registration debug logging
+- `src/js/d2c-enhancements.js` — build output (do not edit directly)
+
+---
+
 ## 2026-02-23 — Help button, build timestamp, page defaults
 
 **Why:** There was no visible indicator of which version of the enhancement script was running, making it impossible to confirm a new build had gone live. On first visit to a page every section was collapsed with no hint of where to start, and there was a brief flash of all sections expanded before `buildLazySections()` ran.

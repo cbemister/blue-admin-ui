@@ -74,6 +74,9 @@ self.addEventListener('fetch', function (event) {
     return; // malformed URL — let it fail naturally
   }
 
+  // Skip non-HTTP schemes (chrome-extension://, data:, blob:, etc.)
+  if (url.protocol !== 'http:' && url.protocol !== 'https:') return;
+
   // Block external FontAwesome — admin.d2cmedia.ca already serves woff2 locally
   if (url.hostname.includes('fontawesome.com')) {
     event.respondWith(new Response('', { status: 200 }));

@@ -26,11 +26,18 @@ var _isSitePage = /^\/sites\//.test(window.location.pathname);
 if ((_isLocal || _isSitePage) && !document.getElementById('d2c-custom-styles')) {
   injectStyles();
 
+  // Run buildLazySections immediately on DOMContentLoaded — no 300ms delay —
+  // so image src removal races ahead of browser prefetch as early as possible.
+  if (document.readyState !== 'loading') {
+    buildLazySections();
+  } else {
+    document.addEventListener('DOMContentLoaded', buildLazySections);
+  }
+
   onReady(function () {
-    // Critical path: layout measurement + section setup run immediately
+    // Critical path: layout measurement
     measureHeader();
     window.addEventListener('resize', measureHeader, { passive: true });
-    buildLazySections();
 
     // Non-critical UI: defer until browser is idle so page interactions
     // (forms, dropdowns, CKEditor init) are not delayed

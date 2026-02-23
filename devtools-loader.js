@@ -40,10 +40,14 @@
   // from local disk — dramatically reduces LCP for repeat visits.
   // Requires the d2c-sw.js DevTools override to be active (see header above).
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/d2c-sw.js').catch(function (e) {
-      // Registration fails silently if the override isn't set up yet
-      console.warn('[D2C] Service Worker not active:', e.message);
-    });
+    navigator.serviceWorker.register('/d2c-sw.js')
+      .then(function (reg) {
+        var state = reg.active ? 'active' : reg.installing ? 'installing' : 'waiting';
+        console.log('[D2C] SW:', state, '| controller:', !!navigator.serviceWorker.controller);
+      })
+      .catch(function (e) {
+        console.warn('[D2C] Service Worker not active:', e.message);
+      });
   }
 
   var s = document.createElement('script');

@@ -96,9 +96,11 @@ export function injectStyles() {
     '.btn[style*="background"]{color:#fff!important}',
     '.btn-block{width:100%!important;display:flex!important}',
     /* D2C custom button classes (not Bootstrap) */
-    '.button,.buttonSmall,input.buttonSmall,a.buttonSmall{display:inline-flex;align-items:center!important;justify-content:center!important;padding:8px 20px!important;font-size:13px!important;font-weight:600!important;color:#fff!important;background:var(--d2c-navy)!important;border:none!important;border-radius:var(--r-md)!important;cursor:pointer!important;text-decoration:none!important;font-family:var(--font)!important;transition:background var(--t)!important}',
+    '.button,.buttonSmall,input.buttonSmall,a.buttonSmall{display:inline-flex!important;align-items:center!important;justify-content:center!important;padding:6px 16px!important;font-size:13px!important;font-weight:500!important;color:#fff!important;background:var(--d2c-navy)!important;border:none!important;border-radius:var(--r-md)!important;cursor:pointer!important;text-decoration:none!important;font-family:var(--font)!important;transition:background var(--t)!important;white-space:nowrap!important}',
     '.button:hover,.buttonSmall:hover{background:#004d90!important;color:#fff!important}',
-    '.buttonSmall{padding:5px 12px!important;font-size:12px!important}',
+    '.buttonSmall{padding:4px 10px!important;font-size:12px!important}',
+    /* Inline margin-right:20% on D2C action buttons breaks in full-width layout — reset it */
+    '#content input.buttonSmall[style]{margin-right:0!important}',
     /* Save button — lives inside #d2c-right-panel below section TOC */
     '#d2c-floating-save{flex-shrink:0!important;width:100%!important;padding:10px 0!important;font-size:13px!important;font-weight:600!important;color:#fff!important;background:var(--d2c-blue)!important;border:1px solid var(--d2c-blue)!important;border-radius:var(--r-lg)!important;cursor:pointer!important;box-shadow:var(--shadow-md)!important;font-family:var(--font)!important;transition:background var(--t),color var(--t),border-color var(--t)!important;display:flex!important;align-items:center!important;justify-content:center!important;gap:8px!important}',
     '#d2c-floating-save:hover{background:#0052a3!important;border-color:#0052a3!important;color:#fff!important}',
