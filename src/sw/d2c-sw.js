@@ -64,6 +64,28 @@ self.addEventListener('activate', function (event) {
   );
 });
 
+// Return a normalized cache key URL for resource.loader.php requests.
+// The `cb=` parameter is a timestamp cache-buster that changes every load
+// but the actual bundle content is determined by `v=` + `js=` alone.
+// Stripping `cb=` lets the SW serve cached responses across reloads.
+function normalizeResourceLoaderUrl(url) {
+  if (!url.pathname.includes('resource.loader.php')) return null;
+  var normalized = new URL(url.href);
+  normalized.searchParams.delete('cb');
+  return normalized.href;
+}
+
+// Strip `t=<number>` cache-buster from asset URLs (images, CSS, JS).
+// D2C appends ?t=<timestamp> to image URLs to bypass the browser HTTP cache,
+// but the SW can serve the same file for any value of t=.
+function normalizeAssetUrl(url) {
+  var t = url.searchParams.get('t');
+  if (!t || !/^\d+$/.test(t)) return url.href; // only strip pure-numeric t=
+  var normalized = new URL(url.href);
+  normalized.searchParams.delete('t');
+  return normalized.href;
+}
+
 self.addEventListener('fetch', function (event) {
   var req = event.request;
   var url;
@@ -113,35 +135,62 @@ self.addEventListener('fetch', function (event) {
     return;
   }
 
-  // Cache-first strategy for all remaining requests (assets)
-  event.respondWith(
-    caches.match(req).then(function (cached) {
-      if (cached) {
-        return cached; // served from cache — ~0 ms
-      }
+  // resource.loader.php — stale-while-revalidate with cb= stripped from cache key.
+  // cb= is a timestamp that busts the browser HTTP cache on every load, meaning
+  // D2C may push script updates without changing v=. Cache-first would serve
+  // stale JS indefinitely in that case. Stale-while-revalidate gives instant
+  // load from cache while always fetching a fresh copy in the background.
+  var normalizedKey = normalizeResourceLoaderUrl(url);
+  if (normalizedKey) {
+    event.respondWith(
+      caches.open(CACHE_NAME).then(function (cache) {
+        return cache.match(normalizedKey).then(function (cached) {
+          var networkFetch = fetch(req).then(function (response) {
+            if (response && response.ok) {
+              cache.put(normalizedKey, response.clone());
+            }
+            return response;
+          }).catch(function () { return cached; });
 
-      return fetch(req).then(function (response) {
-        // Skip opaque responses (cross-origin without CORS headers) — status unknown, risky to cache
-        if (!response || !response.ok || response.type === 'opaque') {
-          return response;
+          // Serve stale immediately; background fetch keeps the cache current
+          return cached || networkFetch;
+        });
+      })
+    );
+    return;
+  }
+
+  // Cache-first strategy for all remaining requests (assets).
+  // Use a normalized cache key so the same asset with different ?t= timestamps
+  // resolves to a single cache entry instead of one per cache-buster value.
+  var assetKey = normalizeAssetUrl(url);
+  event.respondWith(
+    caches.open(CACHE_NAME).then(function (cache) {
+      return cache.match(assetKey).then(function (cached) {
+        if (cached) {
+          return cached; // served from cache — ~0 ms
         }
 
-        var contentType = response.headers.get('content-type') || '';
-        var isCacheable = CACHEABLE_TYPES.some(function (t) {
-          return contentType.includes(t);
+        return fetch(req).then(function (response) {
+          // Skip opaque responses (cross-origin without CORS headers) — status unknown, risky to cache
+          if (!response || !response.ok || response.type === 'opaque') {
+            return response;
+          }
+
+          var contentType = response.headers.get('content-type') || '';
+          var isCacheable = CACHEABLE_TYPES.some(function (t) {
+            return contentType.includes(t);
+          });
+
+          if (!isCacheable) return response;
+
+          // Clone before consuming — cache the clone, return the original
+          cache.put(assetKey, response.clone());
+
+          return response;
+        }).catch(function () {
+          // Network failure — nothing cached, nothing to return
         });
-
-        if (!isCacheable) return response;
-
-        // Clone before consuming — cache the clone, return the original
-        var clone = response.clone();
-        caches.open(CACHE_NAME).then(function (cache) {
-          cache.put(req, clone);
-        });
-
-        return response;
-      }).catch(function () {
-        // Network failure — nothing cached, nothing to return
       });
     })
   );

@@ -12,12 +12,6 @@ import { buildHelpButton } from './help-button.js';
 import { prefetchSections } from './prefetch.js';
 import { buildLazySections } from './lazy-sections.js';
 
-// Register Service Worker on every page — must run outside the /sites/ guard so assets
-// are cached regardless of which admin page is visited first.
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/d2c-sw.js').catch(function () {});
-}
-
 // Guard: only run on site-specific pages (/sites/*) or local sandbox, and only once
 // Skips home, /inventory, /leads, and all other top-level routes on the live admin
 var _host = window.location.hostname;
@@ -35,27 +29,24 @@ if ((_isLocal || _isSitePage) && !document.getElementById('d2c-custom-styles')) 
   }
 
   onReady(function () {
-    // Critical path: layout measurement
     measureHeader();
     window.addEventListener('resize', measureHeader, { passive: true });
 
-    // Non-critical UI: defer until browser is idle so page interactions
-    // (forms, dropdowns, CKEditor init) are not delayed
-    var defer = typeof requestIdleCallback === 'function'
-      ? function (fn) { requestIdleCallback(fn, { timeout: 2000 }); }
-      : function (fn) { setTimeout(fn, 500); };
+    // Build all UI features immediately — visible to the user, no reason to delay
+    buildBreadcrumb();
+    buildSectionTOC();
+    buildDealerNav();
+    buildSearchHint();
+    buildPalette();
+    buildSaveIndicator();
+    buildScrollTop();
+    buildFloatingSave();
+    buildHelpButton();
 
-    defer(function () {
-      buildBreadcrumb();
-      buildSectionTOC();
-      buildDealerNav();
-      buildSearchHint();
-      buildPalette();
-      buildSaveIndicator();
-      buildScrollTop();
-      buildFloatingSave();
-      buildHelpButton();
-      prefetchSections();
-    });
+    // Prefetch stays idle-deferred — background work, never needs to be fast
+    var deferIdle = typeof requestIdleCallback === 'function'
+      ? function (fn) { requestIdleCallback(fn, { timeout: 6000 }); }
+      : function (fn) { setTimeout(fn, 3000); };
+    deferIdle(prefetchSections);
   });
 }

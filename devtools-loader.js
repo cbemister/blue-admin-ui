@@ -17,6 +17,10 @@
    ================================================================ */
 
 (function () {
+  // Guard against double-execution (sitepagesaddedjs.js is loaded twice on some pages)
+  if (window._d2cLoaderRan) return;
+  window._d2cLoaderRan = true;
+
   // Pre-collapse all expandable section content immediately.
   // This runs synchronously before the first paint so the user never sees
   // the flash of all sections expanded. buildLazySections() removes this

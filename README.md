@@ -21,16 +21,18 @@ Chrome DevTools Local Overrides enhancement layer for `admin.d2cmedia.ca`. Adds 
 ### Option 1 — Chrome DevTools Local Override (recommended)
 
 1. In Chrome DevTools → **Sources** → **Overrides** → enable and select a local folder
-2. Map **both** files to your local copies:
+2. Map the **required** override:
 
-   | Remote URL | Local file |
-   |------------|------------|
-   | `admin.d2cmedia.ca/assets/js/sitepagesaddedjs.js` | `devtools-loader.js` |
-   | `admin.d2cmedia.ca/d2c-sw.js` | `src/sw/d2c-sw.js` |
+   | Remote URL | Local file | Required |
+   |------------|------------|----------|
+   | `admin.d2cmedia.ca/assets/js/sitepagesaddedjs.js` | `devtools-loader.js` | **Yes** — all UI enhancements |
+   | `admin.d2cmedia.ca/d2c-sw.js` | `src/sw/d2c-sw.js` | Optional — caching only |
+
+   Without the SW override everything still works; you just don't get the caching speedup on repeat visits. If the SW file is absent the loader logs a warning and continues normally.
 
    > **How to map a file:** Navigate to the URL in Chrome, right-click the file in Sources → "Save for overrides", then replace the saved file with the local copy. For `d2c-sw.js`, navigate to `https://admin.d2cmedia.ca/d2c-sw.js` (will 404), then save for overrides — Chrome creates the file in your overrides folder at the right path.
 
-3. The loader fetches the enhancement script from jsDelivr CDN automatically. The Service Worker activates on the first page load and caches assets for all subsequent visits.
+3. The loader fetches the enhancement script from jsDelivr CDN automatically. If the SW override is active it warms the cache on the first page load; all subsequent visits (including the general page) serve the large JS bundle from local cache instead of the network.
 
 ### Option 2 — Tampermonkey
 

@@ -1,5 +1,29 @@
 # Changelog
 
+## 2026-02-23 — SW cache normalization, section header controls
+
+**Why:** The Service Worker was accumulating redundant cache entries — every reload of `resource.loader.php` used a fresh `cb=` timestamp as the cache key, and every image URL with a `?t=` cache-buster created a separate entry for the same underlying file. Separately, checkboxes and position-select dropdowns embedded inside expandable section headers were triggering a section toggle when clicked, and collapsed sections showed those controls as phantom click targets with no styling.
+
+**What:**
+- `d2c-sw.js`: added `normalizeResourceLoaderUrl()` — strips the `cb=` cache-buster and switches `resource.loader.php` from cache-first to stale-while-revalidate so JS bundle updates (pushed without a `v=` bump) are picked up in the background. Added `normalizeAssetUrl()` — strips `?t=<digits>` from image/asset URLs so the same file resolves to a single cache entry regardless of timestamp. Refactored the fetch handler to open the cache once per request and pass the normalized key to both `cache.match()` and `cache.put()`.
+- `index.js`: removed redundant `navigator.serviceWorker.register()` call (SW registration already happens in `devtools-loader.js`). Moved all `build*()` calls from an idle-deferred closure to run immediately inside `onReady()` — UI features are visible work, not background work. Only `prefetchSections` keeps idle deferral (timeout raised to 6 s).
+- `lazy-sections.js`: PAGE_DEFAULTS is now Priority 1 (wins over localStorage). Previously it was a fallback for first visits; now it always overrides saved state on configured pages. Added `stopPropagation` on `click` and `change` for checkboxes and `<select>` elements inside section headers, preventing the header click handler from toggling the section when a control is interacted with.
+- `stylesheet.js`: added CSS for controls embedded in section headers — `input[type="checkbox"]` and `select` inside `.expandablesection.closed` are hidden; open-section styles for both (white accent, dark background for selects, focus ring, flex alignment).
+- `devtools-loader.js`: added `window._d2cLoaderRan` double-execution guard — `sitepagesaddedjs.js` is loaded twice on some pages and previously ran the full init twice.
+- `README.md`: clarified that the `d2c-sw.js` Local Override is optional; without it everything works but there is no caching speedup.
+
+**Decision:** Stale-while-revalidate for `resource.loader.php` was chosen over cache-first because D2C pushes bundle updates by bumping `cb=` without changing `v=`, so cache-first would serve stale JS indefinitely. The normalized key (no `cb=`) lets the cache entry persist across reloads while the background fetch keeps it current. Stripping `t=` from asset URLs uses a conservative regex (`/^\d+$/`) to avoid accidentally stripping meaningful query params. Moving UI init to `onReady` immediate was safe because DOM is already parsed at that point; the previous idle-defer was unnecessary and caused a visible delay before controls (TOC, breadcrumb, etc.) appeared.
+
+**Files:**
+- `src/sw/d2c-sw.js` — SW cache normalization: cb= stale-while-revalidate, t= asset dedup
+- `src/js/modules/index.js` — immediate UI init, redundant SW registration removed
+- `src/js/modules/lazy-sections.js` — PAGE_DEFAULTS priority 1, header control stopPropagation
+- `src/js/modules/stylesheet.js` — CSS for section header checkboxes and selects
+- `devtools-loader.js` — double-execution guard
+- `README.md` — SW override marked as optional
+
+---
+
 ## 2026-02-23 — Button fixes, earlier image deferral, SW guard
 
 **Why:** Action buttons in the full-width layout were pushed off-screen by an inline `margin-right:20%` that D2C injects. Image lazy-deferral was running too late (inside `onReady`), giving the browser time to start prefetching deferred images before their `src` was removed. The Service Worker's fetch handler could throw on non-HTTP URLs injected by browser extensions.

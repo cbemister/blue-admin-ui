@@ -61,6 +61,13 @@ export function injectStyles() {
     '#content h2.expandablesection::before{content:"\\2212"!important;position:absolute!important;left:16px!important;font-size:20px!important;font-weight:300!important;line-height:1!important;color:rgba(255,255,255,.6)!important;background-image:none!important;width:20px!important;text-align:center!important}',
     '#content h2.expandablesection.closed::before{content:"+"!important}',
     '#content h2.expandablesection .expandableHeaderText,#content h2.expandablesection .first{color:#fff!important;font-weight:600!important}',
+    /* Checkboxes and position-selects in section headers — hide when collapsed, show when open */
+    '#content h2.expandablesection.closed input[type="checkbox"],#content h2.expandablesection.closed select{display:none!important}',
+    '#content h2.expandablesection input[type="checkbox"]{accent-color:#fff!important;flex-shrink:0!important;width:15px!important;height:15px!important;margin:0 8px 0 0!important;cursor:pointer!important;vertical-align:middle!important}',
+    /* Native selects (position dropdowns) embedded in section headers */
+    '#content h2.expandablesection select{background:#002a52!important;border:1px solid rgba(255,255,255,.35)!important;color:#fff!important;border-radius:var(--r-md)!important;height:28px!important;padding:2px 8px!important;font-size:12px!important;font-family:var(--font)!important;cursor:pointer!important;box-shadow:none!important;margin-left:10px!important;flex-shrink:0!important;appearance:auto!important;-webkit-appearance:auto!important}',
+    '#content h2.expandablesection select option{background:#1a2a3a!important;color:#fff!important}',
+    '#content h2.expandablesection select:focus{outline:1px solid rgba(255,255,255,.6)!important;box-shadow:none!important}',
     '#content h2.expandablesection+div,#content h2.expandablesection+table{border:1px solid var(--border)!important;border-top:none!important;border-radius:0 0 var(--r-lg) var(--r-lg)!important;background:var(--surface)!important;padding:24px!important;margin-bottom:8px!important;overflow-x:auto!important}',
     '#content h5.expandablesection{background:#f1f5f9!important;background-image:none!important;color:var(--text)!important;padding:10px 16px 10px 36px!important;margin:16px 0 0!important;border-radius:var(--r-md) var(--r-md) 0 0!important;font-size:13px!important;font-weight:600!important;cursor:pointer!important;user-select:none!important;transition:background var(--t)!important;border:1px solid var(--border)!important;border-bottom:none!important;position:relative!important;display:flex!important;align-items:center!important}',
     '#content h5.expandablesection:hover{background:#e8eef6!important}',

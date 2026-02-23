@@ -2,9 +2,9 @@
 // On every /sites/* page:
 //   1. Collapse all sections immediately and cancel in-flight image requests for
 //      collapsed sections — only the target section's images are ever fetched.
-//   2. Remember which section was last open (stored per page-path in localStorage)
-//      and auto-expand + scroll to it on the next visit.
-//   3. Fall back to PAGE_DEFAULTS on first visit (no saved state yet).
+//   2. Open the PAGE_DEFAULTS section for this page if one is configured (always wins).
+//   3. Otherwise remember which section was last open (stored per page-path in
+//      localStorage) and auto-expand + scroll to it on the next visit.
 //   4. When a section is manually opened, restore its deferred images on demand.
 
 // ── Default section config ────────────────────────────────────────────────────
@@ -54,6 +54,12 @@ export function buildLazySections() {
       restoreImages(getContentDiv(s));
       try { localStorage.setItem(_storageKey, s.id); } catch (e) {}
     });
+
+    // Prevent checkboxes and position-selects from also toggling the section
+    s.querySelectorAll('input[type="checkbox"], select').forEach(function (el) {
+      el.addEventListener('click', function (e) { e.stopPropagation(); });
+      el.addEventListener('change', function (e) { e.stopPropagation(); });
+    });
   });
 
   // --- Programmatic setup: collapse all, defer images, open target section ---
@@ -67,7 +73,13 @@ export function buildLazySections() {
       deferImages(getContentDiv(s));
     });
 
-    // Priority 1: re-open the section the user last worked in
+    // Priority 1: explicit page default (configured in PAGE_DEFAULTS wins over localStorage)
+    if (PAGE_DEFAULTS[window.location.pathname]) {
+      openDefault(sections);
+      return;
+    }
+
+    // Priority 2: re-open the section the user last worked in (pages without a configured default)
     var lastId;
     try { lastId = localStorage.getItem(_storageKey); } catch (e) {}
     if (lastId) {
@@ -75,12 +87,12 @@ export function buildLazySections() {
       if (saved) {
         openSection(saved);
         scrollToSection(saved);
-        return; // done — skip defaults
+        return; // done
       }
     }
 
-    // Priority 2: fall back to configured page default (first visit)
-    openDefault(sections);
+    // Priority 3: no default and no saved state — leave all sections collapsed
+    // (openDefault is a no-op here since we already checked PAGE_DEFAULTS above)
   } finally {
     _skipSave = false;
     // Remove the pre-collapse style injected by devtools-loader.js.
