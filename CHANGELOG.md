@@ -1,5 +1,25 @@
 # Changelog
 
+## 2026-02-24 — DevTools CDN override replaces localhost dev server
+
+**Why:** The localhost HTTP server approach (`serve.js` / `npm run dev`) was broken — Chrome's Service Worker was intercepting the `http://localhost:8765` fetch and failing with `TypeError: Failed to convert value to 'Response'` because the SW's catch handlers could return `null` or `undefined` when both cache and network failed, and `event.respondWith()` cannot accept a non-Response value. Even when the localhost error was swallowed, the CDN fallback hit the same SW bug. Additionally, iterating quickly via push → CDN purge → test was hitting jsDelivr rate limits.
+
+**What:**
+- `devtools-loader.js`: removed the `fetch()` + blob URL localhost workaround entirely. Replaced with a plain `<script src="cdn.jsdelivr.net/...">` tag. Chrome's DevTools Local Overrides intercept that CDN request before it hits the network, so the 3rd override (below) makes local dev work without a server.
+- `src/sw/d2c-sw.js`: removed the stale-while-revalidate cache block for `d2c-enhancements.js` — the SW now passes it through unconditionally so the DevTools override is always served fresh and rebuilt changes appear on the next page reload without a cache eviction. Fixed three catch handlers that returned `undefined` or `null` (HTML, `resource.loader.php`, and generic cache-first strategies) — all now return a `503` Response, preventing `TypeError: Failed to convert value to 'Response'`. Added missing `localhost` skip guard that was present in working copy but not committed.
+- `serve.js`, `dev.js`: deleted — no longer needed.
+- `CLAUDE.md`, `README.md`: documented the 3-override dev setup and the Windows hard link required to keep the CDN override file in sync with `npm run watch` rebuilds.
+
+**Decision:** A DevTools Local Override for the CDN URL is strictly simpler than a local HTTP server: no Chrome Private Network Access policy to work around, no CORS preflight, no server process to start, no rate-limit ceiling. The hard link (`New-Item -ItemType HardLink`) makes the override file and the build output the same inode on disk, so `npm run watch` rebuilds flow through to the browser with zero extra steps. Removing the SW cache for `d2c-enhancements.js` is safe — the file is small (~70 KB), CDN latency is negligible, and caching it was causing confusion during development regardless.
+
+**Files:**
+- `devtools-loader.js` — simplified script loader; updated header docs with 3-override table
+- `src/sw/d2c-sw.js` — CDN script pass-through; catch handler bug fixes; localhost guard committed
+- `CLAUDE.md` — new Local Development Workflow section
+- `README.md` — 3rd override row, hard link setup instructions, updated dev loop
+
+---
+
 ## 2026-02-23 — Fix build-date injection, bust SW cache
 
 **Why:** The browser was throwing `ReferenceError: __BUILD_DATE__ is not defined` because the Service Worker had cached an old version of `d2c-enhancements.js` where esbuild's `define` substitution had not run. Cache-first strategy on the CDN asset meant the broken version was served indefinitely regardless of subsequent fixes pushed to GitHub.

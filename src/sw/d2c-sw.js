@@ -99,6 +99,9 @@ self.addEventListener('fetch', function (event) {
   // Skip non-HTTP schemes (chrome-extension://, data:, blob:, etc.)
   if (url.protocol !== 'http:' && url.protocol !== 'https:') return;
 
+  // Skip localhost — served by the local dev server (npm run serve), never cached
+  if (url.hostname === 'localhost') return;
+
   // Block external FontAwesome — admin.d2cmedia.ca already serves woff2 locally
   if (url.hostname.includes('fontawesome.com')) {
     event.respondWith(new Response('', { status: 200 }));
@@ -125,7 +128,7 @@ self.addEventListener('fetch', function (event) {
               cache.put(req, response.clone());
             }
             return response;
-          }).catch(function () { return cached; });
+          }).catch(function () { return cached || new Response('', { status: 503, statusText: 'SW network error' }); });
 
           // Serve stale immediately; let background fetch update the cache
           return cached || networkFetch;
@@ -150,7 +153,7 @@ self.addEventListener('fetch', function (event) {
               cache.put(normalizedKey, response.clone());
             }
             return response;
-          }).catch(function () { return cached; });
+          }).catch(function () { return cached || new Response('', { status: 503, statusText: 'SW network error' }); });
 
           // Serve stale immediately; background fetch keeps the cache current
           return cached || networkFetch;
@@ -160,25 +163,11 @@ self.addEventListener('fetch', function (event) {
     return;
   }
 
-  // Stale-while-revalidate for the D2C enhancement script from jsDelivr.
-  // Cache-first would serve the old version indefinitely after a push.
-  // Stale-while-revalidate gives instant load from cache while always fetching
-  // a fresh copy in the background so the next page load gets the update.
+  // Always fetch the D2C enhancement script fresh — never cache it.
+  // In dev mode a DevTools Local Override serves the local build for this URL,
+  // so caching would hide rebuilt changes until the SW evicts the stale entry.
+  // The script is small and the CDN is fast; the performance cost is negligible.
   if (url.hostname === 'cdn.jsdelivr.net' && url.pathname.includes('d2c-enhancements.js')) {
-    event.respondWith(
-      caches.open(CACHE_NAME).then(function (cache) {
-        return cache.match(req).then(function (cached) {
-          var networkFetch = fetch(req).then(function (response) {
-            if (response && response.ok) {
-              cache.put(req, response.clone());
-            }
-            return response;
-          }).catch(function () { return cached; });
-
-          return cached || networkFetch;
-        });
-      })
-    );
     return;
   }
 
@@ -211,7 +200,7 @@ self.addEventListener('fetch', function (event) {
 
           return response;
         }).catch(function () {
-          // Network failure — nothing cached, nothing to return
+          return new Response('', { status: 503, statusText: 'SW network error' });
         });
       });
     })

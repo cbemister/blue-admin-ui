@@ -22,6 +22,25 @@ A **pre-push git hook** (`.git/hooks/pre-push`) runs `npm run build` automatical
 
 **Do not edit `src/js/d2c-enhancements.js` directly** — it is the build output. Edit files in `src/js/modules/` instead.
 
+## Local Development Workflow
+
+All three DevTools Local Overrides must be active (Sources → Overrides → Enable Local Overrides):
+
+| Remote URL | Local file |
+|-----------|------------|
+| `admin.d2cmedia.ca/assets/js/sitepagesaddedjs.js` | `devtools-loader.js` |
+| `admin.d2cmedia.ca/d2c-sw.js` | `src/sw/d2c-sw.js` |
+| `cdn.jsdelivr.net/gh/cbemister/blue-admin-ui@main/src/js/d2c-enhancements.js` | `src/js/d2c-enhancements.js` |
+
+The third override is the key to local dev: Chrome intercepts the CDN request and serves the local build file directly, so changes are visible on the next page reload without pushing to GitHub or hitting the CDN.
+
+**Dev loop:**
+1. Add all three overrides (one-time setup)
+2. `npm run watch` — rebuilds `src/js/d2c-enhancements.js` on every save
+3. Edit files in `src/js/modules/`, save, reload the admin page
+
+No local server needed. No CDN rate limits.
+
 ## Which files require a build vs. edit directly
 
 | File | How to change |
@@ -94,7 +113,8 @@ These are the live selectors used by the enhancement script:
 - **Build date via generated module** — `build.js` writes `src/js/modules/build-date.js` (a plain `export var BUILD_DATE = "…"`) before running esbuild, so the date becomes a regular string literal in the bundle. Avoids esbuild `define` tokens, which produce a `ReferenceError` if a stale cached build reaches the browser.
 - **Build output committed** — `src/js/d2c-enhancements.js` is committed so jsDelivr can serve it from GitHub without CI/CD.
 - **Palette keyboard shortcut inside `buildPalette()`** — the `Ctrl+K` listener is registered inside the builder function, after `paletteOverlay` is set, to avoid a null reference if the shortcut fires before init.
-- **Service Worker via DevTools override** — `src/sw/d2c-sw.js` is mapped to `admin.d2cmedia.ca/d2c-sw.js` via a second Local Override. This file is **not processed by esbuild** — edit it directly. The SW registration runs outside the `/sites/*` pathname guard so caching applies to all admin pages.
+- **Service Worker via DevTools override** — `src/sw/d2c-sw.js` is mapped to `admin.d2cmedia.ca/d2c-sw.js` via a Local Override. This file is **not processed by esbuild** — edit it directly. The SW registration runs outside the `/sites/*` pathname guard so caching applies to all admin pages.
+- **Enhancement script never SW-cached** — `d2c-enhancements.js` is always fetched fresh (the SW passes it through). In dev mode the 3rd DevTools override serves the local build for the CDN URL, so rebuilt changes appear on the very next reload.
 - **`/sites/*` pathname guard** — enhancement features (styles, TOC, palette, etc.) only initialise on `/sites/[section]` URLs. Home, `/inventory`, `/leads`, etc. are skipped. Localhost always runs (for development). The guard lives at the top of `index.js`.
 
 ## Reference Documentation (docs/)

@@ -21,18 +21,28 @@ Chrome DevTools Local Overrides enhancement layer for `admin.d2cmedia.ca`. Adds 
 ### Option 1 — Chrome DevTools Local Override (recommended)
 
 1. In Chrome DevTools → **Sources** → **Overrides** → enable and select a local folder
-2. Map the **required** override:
+2. Map the following overrides:
 
    | Remote URL | Local file | Required |
    |------------|------------|----------|
    | `admin.d2cmedia.ca/assets/js/sitepagesaddedjs.js` | `devtools-loader.js` | **Yes** — all UI enhancements |
    | `admin.d2cmedia.ca/d2c-sw.js` | `src/sw/d2c-sw.js` | Optional — caching only |
+   | `cdn.jsdelivr.net/gh/cbemister/blue-admin-ui@main/src/js/d2c-enhancements.js` | `src/js/d2c-enhancements.js` | Optional — local dev only |
 
-   Without the SW override everything still works; you just don't get the caching speedup on repeat visits. If the SW file is absent the loader logs a warning and continues normally.
+   Without the SW override everything still works; you just don't get the caching speedup on repeat visits. The 3rd override is only needed during development (see below).
 
    > **How to map a file:** Navigate to the URL in Chrome, right-click the file in Sources → "Save for overrides", then replace the saved file with the local copy. For `d2c-sw.js`, navigate to `https://admin.d2cmedia.ca/d2c-sw.js` (will 404), then save for overrides — Chrome creates the file in your overrides folder at the right path.
 
-3. The loader fetches the enhancement script from jsDelivr CDN automatically. If the SW override is active it warms the cache on the first page load; all subsequent visits (including the general page) serve the large JS bundle from local cache instead of the network.
+   > **3rd override (local dev) — hard link setup:** The CDN override file must always reflect the latest build output. Rather than manually copying, create a Windows hard link so both paths point to the same file on disk. After Chrome creates the override file via "Save for overrides", replace it:
+   > ```powershell
+   > # Run once in PowerShell — replace <overrides> with your overrides folder path
+   > New-Item -ItemType HardLink `
+   >   -Path "<overrides>\cdn.jsdelivr.net\gh\cbemister\blue-admin-ui@main\src\js\d2c-enhancements.js" `
+   >   -Target "<repo>\src\js\d2c-enhancements.js"
+   > ```
+   > After this, every `npm run watch` rebuild automatically updates the override file — no manual copying.
+
+3. The loader fetches the enhancement script from jsDelivr CDN automatically. If the SW override is active it warms the cache on the first page load; all subsequent visits serve the large JS bundle from local cache instead of the network.
 
 ### Option 2 — Tampermonkey
 
@@ -56,9 +66,16 @@ npm install
 npm run watch       # rebuilds src/js/d2c-enhancements.js on every save
 ```
 
-Open `sandbox.html` in a browser to test changes locally without touching the live admin panel.
-
 Edit source files in [src/js/modules/](src/js/modules/). The bundle at `src/js/d2c-enhancements.js` is generated automatically — do not edit it directly.
+
+### Local dev loop (live admin panel)
+
+1. Add all three DevTools overrides from the table above (one-time setup)
+2. Set up the hard link for the 3rd override so rebuilds flow through automatically (see setup notes above)
+3. `npm run watch`
+4. Edit files in `src/js/modules/`, save, reload the admin page
+
+Chrome intercepts the CDN request via the 3rd override and serves the local build directly — no server, no CDN, no rate limits. Changes appear on the next page reload.
 
 ## Deploying Changes
 

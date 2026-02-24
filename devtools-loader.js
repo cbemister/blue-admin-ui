@@ -3,17 +3,19 @@
    ================================================================
    DevTools Local Overrides required (Sources → Overrides):
 
-     Remote URL                                       Local file
-     ───────────────────────────────────────────────  ─────────────────────
-     admin.d2cmedia.ca/assets/js/sitepagesaddedjs.js  devtools-loader.js
-     admin.d2cmedia.ca/d2c-sw.js                      src/sw/d2c-sw.js
+     Remote URL                                                           Local file
+     ───────────────────────────────────────────────────────────────────  ─────────────────────────────────────────
+     admin.d2cmedia.ca/assets/js/sitepagesaddedjs.js                      devtools-loader.js
+     admin.d2cmedia.ca/d2c-sw.js                                          src/sw/d2c-sw.js
+     cdn.jsdelivr.net/gh/cbemister/blue-admin-ui@main/src/js/d2c-enhancements.js  src/js/d2c-enhancements.js
 
    The Service Worker caches all JS/CSS/images/fonts after the first
    page load — subsequent visits load in ~1–2 s instead of 11 s.
    It also blocks redundant external FontAwesome requests (~1.2 s saving).
 
-   The enhancement script is loaded from GitHub/jsDelivr so you can
-   push changes and they go live without updating DevTools overrides.
+   DEV MODE: add the 3rd override above, then run `npm run watch`.
+   Chrome intercepts the CDN request and serves the local build directly —
+   no local server needed, no CDN rate limits.
    ================================================================ */
 
 (function () {
@@ -54,13 +56,15 @@
       });
   }
 
-  var s = document.createElement('script');
-  s.src = 'https://cdn.jsdelivr.net/gh/cbemister/blue-admin-ui@main/src/js/d2c-enhancements.js';
-  s.onerror = function () {
-    console.warn('[D2C] Enhancement script failed to load from jsDelivr');
-    // Remove pre-collapse immediately on load failure so sections are visible
+  // Load the enhancement script from jsDelivr CDN.
+  // In dev mode, the 3rd DevTools override intercepts this request and serves
+  // the local build (src/js/d2c-enhancements.js) — no server or CDN needed.
+  var script = document.createElement('script');
+  script.src = 'https://cdn.jsdelivr.net/gh/cbemister/blue-admin-ui@main/src/js/d2c-enhancements.js';
+  script.onerror = function () {
+    console.warn('[D2C] Enhancement script failed to load');
     var el = document.getElementById('d2c-precollapse');
     if (el) el.parentNode.removeChild(el);
   };
-  document.head.appendChild(s);
+  document.head.appendChild(script);
 })();
