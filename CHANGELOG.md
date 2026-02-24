@@ -1,5 +1,21 @@
 # Changelog
 
+## 2026-02-24 — Holiday Hours widget restyled as collapsible card
+
+**Why:** The Holiday Hours widget was rendered as a flat list directly in the right panel, which didn't match the card style of the TOC and other panel components. With more page-specific shortcut features planned, the panel also needed a clear section heading.
+
+**What:**
+- `holiday-hours.js`: restructured widget HTML — added `#d2c-hh-widget-header` (clickable, matching `.d2c-toc-header` pattern) and wrapped buttons + snap-info in `#d2c-hh-widget-body`. Inserted a `#d2c-shortcuts-label` divider element above the card. Collapse state (`d2c-hh-minimized` class) persisted to `localStorage` key `d2c-hh-collapsed`. Toggle indicator uses ▲ (open) / ▼ (collapsed).
+- `stylesheet.js`: replaced flat `#d2c-hh-widget` padding/border-top rules with a card (`background`, `border`, `border-radius`, `box-shadow` matching `#d2c-section-toc`). Added `#d2c-hh-widget-header`, `#d2c-hh-widget-body`, `.d2c-hh-minimized` CSS. Added `#d2c-shortcuts-label` section heading style. Removed obsolete `.d2c-hh-widget-title` rules.
+
+**Decision:** Card + collapsible header matches the TOC panel exactly — same DOM structure, same CSS variables, same ▲/▼ toggle convention. `#d2c-shortcuts-label` is a standalone element in the right panel (not inside the card) so it will naturally head any additional shortcut cards added for other pages in future.
+
+**Files:**
+- `src/js/modules/holiday-hours.js` — card HTML, Shortcuts label, collapse toggle with localStorage
+- `src/js/modules/stylesheet.js` — card CSS; removed old flat widget styles
+
+---
+
 ## 2026-02-24 — Accordion sections, TOC active state, audit log integration
 
 **Why:** Three independent UX issues: (1) expanding a section left all other sections open, making long pages harder to navigate; (2) the TOC active-link highlight used `IntersectionObserver` which kept a collapsed section's header highlighted if it was still in the viewport; (3) the "All changes saved" toast was redundant once the audit log panel started showing save history inline.

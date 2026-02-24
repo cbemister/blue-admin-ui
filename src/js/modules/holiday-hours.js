@@ -372,29 +372,52 @@ export function buildHolidayHours() {
   if (!/\/sites\/general\/?$/.test(window.location.pathname) && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') return;
   if (document.getElementById('d2c-hh-widget')) return;
 
-  var widget = document.createElement('div');
-  widget.id = 'd2c-hh-widget';
-
   var existing = readSnapshot();
   var hasSnap  = !!existing;
 
-  widget.innerHTML =
-    '<div class="d2c-hh-widget-title"><i class="fa fa-calendar-o"></i> Holiday Hours</div>' +
-    '<div id="d2c-hh-snap-info"' + (hasSnap ? '' : ' style="display:none"') + '>' +
-      '<i class="fa fa-check-circle"></i> Snapshot saved<br>' +
-      '<span id="d2c-hh-snap-date">' + (hasSnap ? fmtDate(existing.savedAt) : '') + '</span>' +
-    '</div>' +
-    '<button id="d2c-hh-btn-snap" class="d2c-hh-btn-widget" title="Save current hours so you can restore them later">' +
-      '<i class="fa fa-camera"></i> Save Snapshot' +
-    '</button>' +
-    '<button id="d2c-hh-btn-edit" class="d2c-hh-btn-widget d2c-hh-btn-primary-widget">' +
-      '<i class="fa fa-pencil"></i> Edit Holiday Hours\u2026' +
-    '</button>' +
-    '<button id="d2c-hh-btn-restore" class="d2c-hh-btn-widget d2c-hh-btn-danger-widget"' + (hasSnap ? '' : ' disabled') + ' title="Restore hours from last snapshot">' +
-      '<i class="fa fa-undo"></i> Restore Snapshot' +
-    '</button>';
+  var COLLAPSE_KEY = 'd2c-hh-collapsed';
+  var isCollapsed;
+  try { isCollapsed = localStorage.getItem(COLLAPSE_KEY) === '1'; } catch (e) { isCollapsed = false; }
 
-  getRightPanel().appendChild(widget);
+  // Section label (Shortcuts heading above the card)
+  var label = document.createElement('div');
+  label.id = 'd2c-shortcuts-label';
+  label.textContent = 'Shortcuts';
+
+  var widget = document.createElement('div');
+  widget.id = 'd2c-hh-widget';
+  if (isCollapsed) widget.classList.add('d2c-hh-minimized');
+
+  widget.innerHTML =
+    '<div id="d2c-hh-widget-header">' +
+      '<span><i class="fa fa-calendar-o"></i> Holiday Hours</span>' +
+      '<span id="d2c-hh-widget-toggle">' + (isCollapsed ? '\u25bc' : '\u25b2') + '</span>' +
+    '</div>' +
+    '<div id="d2c-hh-widget-body">' +
+      '<div id="d2c-hh-snap-info"' + (hasSnap ? '' : ' style="display:none"') + '>' +
+        '<i class="fa fa-check-circle"></i> Snapshot saved<br>' +
+        '<span id="d2c-hh-snap-date">' + (hasSnap ? fmtDate(existing.savedAt) : '') + '</span>' +
+      '</div>' +
+      '<button id="d2c-hh-btn-snap" class="d2c-hh-btn-widget" title="Save current hours so you can restore them later">' +
+        '<i class="fa fa-camera"></i> Save Snapshot' +
+      '</button>' +
+      '<button id="d2c-hh-btn-edit" class="d2c-hh-btn-widget d2c-hh-btn-primary-widget">' +
+        '<i class="fa fa-pencil"></i> Edit Holiday Hours\u2026' +
+      '</button>' +
+      '<button id="d2c-hh-btn-restore" class="d2c-hh-btn-widget d2c-hh-btn-danger-widget"' + (hasSnap ? '' : ' disabled') + ' title="Restore hours from last snapshot">' +
+        '<i class="fa fa-undo"></i> Restore Snapshot' +
+      '</button>' +
+    '</div>';
+
+  var panel = getRightPanel();
+  panel.appendChild(label);
+  panel.appendChild(widget);
+
+  document.getElementById('d2c-hh-widget-header').addEventListener('click', function () {
+    var min = widget.classList.toggle('d2c-hh-minimized');
+    document.getElementById('d2c-hh-widget-toggle').textContent = min ? '\u25bc' : '\u25b2';
+    try { localStorage.setItem(COLLAPSE_KEY, min ? '1' : '0'); } catch (e) {}
+  });
 
   document.getElementById('d2c-hh-btn-snap').addEventListener('click', function () {
     var data = saveSnapshot();
