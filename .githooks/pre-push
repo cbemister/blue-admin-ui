@@ -1,0 +1,29 @@
+﻿#!/bin/sh
+# Rebuild before pushing so dist/ is always up-to-date on GitHub (jsDelivr serves from dist/).
+# build.js also writes src/js/modules/build-date.js.
+set -e
+
+# Prefer system node; fall back to portable binary if system node is missing or too old
+NODE="node"
+if ! command -v node >/dev/null 2>&1; then
+  NODE="C:/Users/cbemister/node-portable/node-v20.10.0-win-x64/node.exe"
+fi
+
+if [ ! -f "build.js" ]; then
+  echo "[d2c] Warning: build.js not found. Skipping build."
+  exit 0
+fi
+
+echo "[d2c] Building bundle..."
+"$NODE" build.js
+echo "[d2c] Build done."
+
+# Stage and commit all build outputs if anything changed.
+if ! git diff --quiet dist/d2c-enhancements.js dist/d2c-sw.js dist/devtools-loader.js dist/sitepagesaddedjs.js src/js/modules/build-date.js 2>/dev/null || git ls-files --others --error-unmatch dist/ >/dev/null 2>&1; then
+  echo "[d2c] Build outputs changed - committing..."
+  git add dist/ src/js/modules/build-date.js
+  git commit -m "chore: rebuild dist before push"
+fi
+
+# jsDelivr @main automatically reflects new commits within ~24 hours.
+# To force an immediate update: npm run purge
