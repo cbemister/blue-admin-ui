@@ -83,18 +83,12 @@ function scrapeCommands() {
     cmds.push({ type: 'page', title: displayTitle, href: href, icon: icon, q: (dealerName ? dealerName + ' ' + title : title).toLowerCase() });
   });
 
-  // Dealerships from selector
-  var sel = document.querySelector('#dealername select.selectpicker');
-  if (sel) {
-    var currentId = '';
-    var currentSiteEl = document.getElementById('currentSiteID');
-    if (currentSiteEl) currentId = currentSiteEl.value;
-    if (!currentId && sel.options.length) {
-      for (var i = 0; i < sel.options.length; i++) {
-        if (sel.options[i].selected) { currentId = sel.options[i].value; break; }
-      }
-    }
+  // Dealerships from #side-menu
+  var sideMenu = document.getElementById('side-menu');
+  var currentSiteEl = document.getElementById('currentSiteID');
+  var currentId = currentSiteEl ? currentSiteEl.value : '';
 
+  if (sideMenu) {
     var pages = [
       { name: 'General',      path: '/sites/general' },
       { name: 'Homepage',     path: '/sites/homepage' },
@@ -110,11 +104,18 @@ function scrapeCommands() {
       { name: 'Statistics',   path: '/sites/stats' }
     ];
 
-    for (var j = 0; j < sel.options.length; j++) {
-      var opt = sel.options[j];
-      var sid  = opt.value;
-      var name = opt.textContent.trim().replace(/\s*\(\d+\)\s*$/, '');
-      if (!sid || !name) continue;
+    var topLis = sideMenu.children;
+    for (var j = 0; j < topLis.length; j++) {
+      var li = topLis[j];
+      var anchor = li.querySelector(':scope > a');
+      if (!anchor) continue;
+      var siteIdEl = li.querySelector('[data-siteid]');
+      if (!siteIdEl) continue;
+      var sid = siteIdEl.getAttribute('data-siteid');
+      if (!sid) continue;
+      var titleSpan = anchor.querySelector('.title');
+      var name = titleSpan ? titleSpan.textContent.trim() : (anchor.getAttribute('title') || '');
+      if (!name) continue;
 
       cmds.push({
         type:  'dealer',
@@ -209,18 +210,11 @@ function execute(cmd) {
   if (cmd.type === 'page') {
     window.location.href = cmd.href;
   } else if (cmd.type === 'dealer') {
-    var sel = document.querySelector('#dealername select.selectpicker');
-    if (sel && typeof jQuery !== 'undefined') {
-      jQuery(sel).val(cmd.siteId).trigger('change');
-    }
+    window.location.href = '/ajax/sitesRedirect?siteID=' +
+      encodeURIComponent(cmd.siteId) + '&dest=' + encodeURIComponent('/sites/general');
   } else if (cmd.type === 'nav') {
-    var selEl = document.querySelector('#dealername select.selectpicker');
-    if (selEl && typeof jQuery !== 'undefined') {
-      jQuery(selEl).val(cmd.siteId).trigger('change');
-      setTimeout(function () { window.location.href = cmd.href; }, 400);
-    } else {
-      window.location.href = cmd.href;
-    }
+    window.location.href = '/ajax/sitesRedirect?siteID=' +
+      encodeURIComponent(cmd.siteId) + '&dest=' + encodeURIComponent(cmd.href);
   }
 }
 

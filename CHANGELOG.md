@@ -1,5 +1,42 @@
 # Changelog
 
+## 2026-02-24 — Brand nav, dealer caching, dist build pipeline, minification
+
+**Why:** Four independent improvements: (1) navigating between dealers in the same brand group requires reopening the palette every time — a `‹ [Dealer ▾] ›` widget in the breadcrumb makes this a one-click action; (2) the palette's dealer list was sourced from `#dealername select.selectpicker` which is unreliable and jQuery-dependent — needs rewriting against `#side-menu`; (3) the page flashes unstyled content briefly while UI features initialise; (4) other users sharing this SW had to manually update `d2c-sw.js` in their overrides folder on every SW change — a shim pattern eliminates this.
+
+**What:**
+- `brand-nav.js` (new): Brand navigation widget injected into the breadcrumb. Reads all dealers from `#side-menu > li[data-siteid]`, groups by brand via `SITE_BRAND` map (27 dealers: Stellantis=13, VW=7, Honda·Acura=5, Ford=2, BMW=2, MB=1). Renders `‹ [Dealer Name ▾] ›` — ‹/› arrows navigate to prev/next same-brand dealer, pill button opens dropdown listing all dealers in the group with the current one highlighted. Navigation via `/ajax/sitesRedirect?siteID=X&dest=PATH`. At 8 s idle, posts `prefetchDealer` messages to the SW for all other same-brand dealers at the current path.
+- `palette.js`: Rewrote dealer data source from `#dealername select.selectpicker` (broken; jQuery-dependent) to `#side-menu > li`. Both `dealer` and `nav` command types now navigate via `sitesRedirect` URL directly instead of jQuery `.val().trigger('change')`.
+- `index.js` + `stylesheet.js`: FOUC prevention — `body.d2c-loading{opacity:0}` applied immediately after `injectStyles()`; animated 3 px shimmer bar sits at the top of the page while builds run. After all build functions complete, posts `{type:'siteId', id}` to the SW controller, then swaps `d2c-loading` → `d2c-ready` which triggers a 250 ms CSS fade-in. Loader bar removed after 300 ms.
+- `prefetch.js`: `fetch()` calls replaced with `<link rel="prefetch" as="document">` — browser treats these as background hints that do not keep the tab spinner running.
+- `d2c-sw-impl.js` (new): Full SW logic (formerly in `d2c-sw.js`). Adds dealer-scoped HTML caching: `currentDealer` / `pendingDealer` vars; `message` listener handles `siteId` (set currentDealer) and `prefetchDealer` (fetch + cache another dealer's page); HTML pages cached under `/__d2c__/{siteID}{pathname}` key to prevent cross-dealer collisions. `sitesRedirect` requests intercepted to record `pendingDealer` before the redirect fires. HTML cache bumped to `d2c-admin-html-v2`.
+- `d2c-sw.js` (now a shim): Replaced 208 lines of SW logic with a 5-line `importScripts(CDN dist/d2c-sw.js)`. Other users install this once and never need to manually update the SW again — logic auto-updates on every push.
+- `build.js`: Added `buildLoader()` — reads `sitepagesaddedjs-platform.js` (D2C platform prefix, 454 lines) + minifies `devtools-loader.js` via `esbuild.transformSync` → `dist/sitepagesaddedjs.js`. Added `buildSW()` — minifies `d2c-sw-impl.js` → `dist/d2c-sw.js`; copies `devtools-loader.js` → `dist/devtools-loader.js`. esbuild bundle now outputs to `dist/d2c-enhancements.js` with `minify:true`. Watch mode includes `devtools-loader.js`, `sitepagesaddedjs-platform.js`, and `d2c-sw-impl.js`.
+- `sitepagesaddedjs-platform.js` (new): First 454 lines of D2C's `sitepagesaddedjs.js` — the platform code prefix prepended by `buildLoader()`.
+- `devtools-loader.js`: CDN URL updated from `src/js/d2c-enhancements.js` to `dist/d2c-enhancements.js`; header comment updated with all 4 DevTools overrides.
+- `package.json`: Purge URL updated to `dist/d2c-enhancements.js`.
+- `stylesheet.js`: Added `.button[style*="display:none"]` rule so platform-hidden buttons (e.g. `#btnAddContact` during update mode) are not wrongly forced visible by our `.button{display:inline-flex}` override. Tightened `.d2c-bc-dealer` padding; added `border-radius`.
+- Hard links: All 4 chrome-overrides files hard-linked to project files so `npm run build`/watch updates flow through to Chrome instantly.
+- Pre-push hook: Updated to stage and commit `dist/` files alongside source changes.
+
+**Decision:** SW shim pattern (`importScripts`) means other users install a 5-line file once — all future SW logic changes deploy automatically via CDN with zero manual follow-up. `dist/` directory separates all build outputs from source for a clean boundary and a single place to hard-link all overrides. Minification at build time reduces CDN transfer: `d2c-enhancements.js` 93 KB minified, `d2c-sw.js` 3.3 KB, `devtools-loader.js` 1 KB. Brand nav uses `sitesRedirect` for navigation — same platform mechanism, no jQuery timing hacks. `prefetchDealer` posted at 8 s idle so prewarming never competes with normal page load.
+
+**Files:**
+- `src/js/modules/brand-nav.js` — new; brand nav widget + idle SW prefetch
+- `src/js/modules/palette.js` — dealer source from `#side-menu`; `sitesRedirect` navigation
+- `src/js/modules/index.js` — FOUC hide/show; `siteId` postMessage; `buildBrandNav()` call
+- `src/js/modules/stylesheet.js` — brand nav CSS; FOUC/loader CSS; `.button` display fix; breadcrumb pill padding
+- `src/js/modules/prefetch.js` — `fetch()` → `<link rel="prefetch">`
+- `src/sw/d2c-sw.js` — 5-line `importScripts` shim
+- `src/sw/d2c-sw-impl.js` — new; full SW logic with dealer-scoped HTML cache
+- `src/js/sitepagesaddedjs-platform.js` — new; D2C platform JS prefix for `buildLoader()`
+- `build.js` — `buildLoader()`, `buildSW()`, `minify:true`, `dist/` output, watch hooks
+- `devtools-loader.js` — CDN URL → `dist/`; 4-override comment table
+- `package.json` — purge URL → `dist/d2c-enhancements.js`
+- `dist/d2c-enhancements.js`, `dist/d2c-sw.js`, `dist/devtools-loader.js`, `dist/sitepagesaddedjs.js` — build outputs; all minified; hard-linked to chrome-overrides
+
+---
+
 ## 2026-02-24 — Holiday Hours widget restyled as collapsible card
 
 **Why:** The Holiday Hours widget was rendered as a flat list directly in the right panel, which didn't match the card style of the TOC and other panel components. With more page-specific shortcut features planned, the panel also needed a clear section heading.

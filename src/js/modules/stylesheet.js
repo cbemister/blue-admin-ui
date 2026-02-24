@@ -104,6 +104,8 @@ export function injectStyles() {
     '.btn-block{width:100%!important;display:flex!important}',
     /* D2C custom button classes (not Bootstrap) */
     '.button,.buttonSmall,input.buttonSmall,a.buttonSmall{display:inline-flex!important;align-items:center!important;justify-content:center!important;padding:6px 16px!important;font-size:13px!important;font-weight:500!important;color:#fff!important;background:var(--d2c-navy)!important;border:none!important;border-radius:var(--r-md)!important;cursor:pointer!important;text-decoration:none!important;font-family:var(--font)!important;transition:background var(--t)!important;white-space:nowrap!important}',
+    /* Respect platform-set display:none on .button elements (e.g. #btnAddContact hidden during update mode) */
+    '.button[style*="display:none"],.button[style*="display: none"]{display:none!important}',
     '.button:hover,.buttonSmall:hover{background:#004d90!important;color:#fff!important}',
     '.buttonSmall{padding:4px 10px!important;font-size:12px!important}',
     /* Inline margin-right:20% on D2C action buttons breaks in full-width layout — reset it */
@@ -231,9 +233,24 @@ export function injectStyles() {
     '#d2c-breadcrumb{display:flex!important;align-items:center!important;gap:6px!important;font-size:13px!important;color:var(--text-muted)!important;margin-right:auto!important;min-width:0!important;overflow:hidden!important}',
     '#d2c-breadcrumb span{white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}',
     '#d2c-breadcrumb .d2c-bc-sep{color:var(--text-light)!important;flex-shrink:0!important;font-size:10px!important}',
-    '#d2c-breadcrumb .d2c-bc-dealer{font-weight: 600 !important;color: white;font-size: 1.4rem;background: var(--d2c-navy) !important;padding: 1rem 2rem;}',
+    '#d2c-breadcrumb .d2c-bc-dealer{font-weight:600!important;color:#fff!important;font-size:1.4rem!important;background:var(--d2c-navy)!important;padding:.5rem 1.2rem!important;border-radius:var(--r-md)!important}',
     '#d2c-breadcrumb .d2c-bc-section{color:var(--text-muted)!important}',
     '#d2c-breadcrumb .d2c-bc-page{color:var(--text)!important;font-weight:500!important}',
+
+    /* Brand nav widget */
+    '.d2c-bn-wrapper{display:inline-flex!important;align-items:center!important;gap:3px!important;overflow:visible!important;flex-shrink:0!important;white-space:nowrap!important}',
+    '.d2c-bn-arrow{display:inline-flex!important;align-items:center!important;justify-content:center!important;width:22px!important;height:22px!important;padding:0!important;background:var(--d2c-navy)!important;color:#fff!important;border:none!important;border-radius:var(--r-sm)!important;cursor:pointer!important;font-size:16px!important;line-height:1!important;font-family:var(--font)!important;flex-shrink:0!important;transition:background var(--t)!important}',
+    '.d2c-bn-arrow:hover{background:#004d90!important}',
+    'button.d2c-bn-pill{border:none!important;cursor:pointer!important;font-family:var(--font)!important;transition:background var(--t)!important;line-height:1.4!important}',
+    'button.d2c-bn-pill:hover{background:#004d90!important}',
+    '.d2c-bn-caret{font-size:10px!important;opacity:.75!important}',
+    '.d2c-bn-dropdown{position:fixed!important;z-index:1060!important;background:var(--surface)!important;border:1px solid var(--border)!important;border-radius:var(--r-lg)!important;box-shadow:var(--shadow-lg)!important;padding:4px 0!important;min-width:220px!important;max-height:320px!important;overflow-y:auto!important;list-style:none!important;margin:0!important;display:none!important}',
+    '.d2c-bn-dropdown.d2c-bn-open{display:block!important}',
+    '.d2c-bn-dropdown-header{padding:6px 14px 5px!important;font-size:10px!important;font-weight:700!important;text-transform:uppercase!important;letter-spacing:.6px!important;color:var(--text-muted)!important;pointer-events:none!important;border-bottom:1px solid var(--border)!important;margin-bottom:3px!important}',
+    '.d2c-bn-dropdown li a{display:block!important;padding:7px 14px!important;font-size:13px!important;color:var(--text)!important;text-decoration:none!important;transition:background var(--t)!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}',
+    '.d2c-bn-dropdown li a:hover{background:var(--d2c-blue-light)!important;color:var(--d2c-navy)!important}',
+    '.d2c-bn-dropdown li a.d2c-bn-current{font-weight:600!important;color:var(--d2c-navy)!important;border-left:3px solid var(--d2c-navy)!important;padding-left:11px!important}',
+    '.d2c-bn-dropdown li a.d2c-bn-current:hover{background:var(--d2c-blue-light)!important}',
 
     /* Search hint */
     '#d2c-search-hint{flex-shrink:0!important}',
@@ -375,6 +392,14 @@ export function injectStyles() {
     '.d2c-hh-diff-compact .d2c-hh-diff-to{color:var(--success)!important;font-weight:500!important;font-size:11px!important}',
     '.d2c-hh-diff-compact .d2c-hh-diff-arrow{color:var(--text-light)!important;font-size:14px!important;padding:0 2px!important}',
     '#d2c-hh-info-modal{max-width:720px!important}',
+
+    /* FOUC prevention — body hidden until builds complete, then fades in */
+    'body.d2c-loading{opacity:0!important}',
+    'body.d2c-ready{opacity:1!important;transition:opacity .25s ease!important}',
+
+    /* Skeleton loading bar */
+    '.d2c-loader-bar{position:fixed;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--d2c-navy) 0%,var(--d2c-blue) 50%,var(--d2c-navy) 100%);background-size:200% 100%;animation:d2c-loader-slide 1.2s ease-in-out infinite;z-index:99999;pointer-events:none}',
+    '@keyframes d2c-loader-slide{0%{background-position:200% 0}100%{background-position:-200% 0}}',
   ].join('\n');
 
   var styleEl = document.createElement('style');

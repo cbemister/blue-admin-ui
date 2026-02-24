@@ -28,8 +28,15 @@ export function prefetchSections() {
   if (!links.length) return;
 
   var fire = function () {
+    // Use <link rel="prefetch"> instead of fetch() — browser handles these as
+    // background hints and they do NOT keep the tab's loading spinner running.
+    // The SW stale-while-revalidate handler caches the responses the same way.
     links.forEach(function (href) {
-      fetch(href, { credentials: 'same-origin' }).catch(function () {});
+      var link = document.createElement('link');
+      link.rel  = 'prefetch';
+      link.as   = 'document';
+      link.href = href;
+      document.head.appendChild(link);
     });
   };
 

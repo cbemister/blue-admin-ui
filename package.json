@@ -9,7 +9,7 @@
   "scripts": {
     "build": "node build.js",
     "watch": "node build.js --watch",
-    "purge": "curl -s \"https://purge.jsdelivr.net/gh/cbemister/blue-admin-ui@main/src/js/d2c-enhancements.js\" && echo \"CDN cache purged.\""
+    "purge": "curl -s \"https://purge.jsdelivr.net/gh/cbemister/blue-admin-ui@main/dist/d2c-enhancements.js\" && echo \"CDN cache purged.\""
   },
   "keywords": [],
   "author": "",

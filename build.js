@@ -1,6 +1,55 @@
 const esbuild = require('esbuild');
 const fs = require('fs');
+const path = require('path');
 const isWatch = process.argv.includes('--watch');
+
+// Concatenate the original D2C platform prefix + devtools-loader.js inline into
+// dist/sitepagesaddedjs.js. The loader MUST be inline (not a CDN script tag)
+// because it injects the pre-collapse style synchronously — a CDN async load
+// would arrive too late and cause FOUC.
+// Other users need to refresh this file when devtools-loader.js logic changes,
+// but that is rare. The heavier d2c-enhancements.js and d2c-sw.js auto-update
+// from CDN on every push without any re-distribution.
+const LOADER_SRC      = path.resolve(__dirname, 'devtools-loader.js');
+const PLATFORM_PREFIX = path.resolve(__dirname, 'src/js/sitepagesaddedjs-platform.js');
+const LOADER_DEST     = path.resolve(__dirname, 'dist/sitepagesaddedjs.js');
+
+function buildLoader() {
+  try {
+    fs.mkdirSync(path.dirname(LOADER_DEST), { recursive: true });
+    const prefix = fs.readFileSync(PLATFORM_PREFIX, 'utf8');
+    const loaderSrc = fs.readFileSync(LOADER_SRC, 'utf8');
+    const loaderMin = esbuild.transformSync(loaderSrc, { minify: true, legalComments: 'none' }).code;
+    fs.writeFileSync(LOADER_DEST, prefix + '\n' + loaderMin, 'utf8');
+    console.log('[loader] built → dist/sitepagesaddedjs.js');
+  } catch (e) {
+    console.warn('[loader] build failed:', e.message);
+  }
+}
+
+// Copy + minify src/sw/d2c-sw-impl.js → dist/d2c-sw.js and devtools-loader.js → dist/devtools-loader.js
+const SW_SRC  = path.resolve(__dirname, 'src/sw/d2c-sw-impl.js');
+const SW_DEST = path.resolve(__dirname, 'dist/d2c-sw.js');
+
+const DEVTOOLS_LOADER_SRC  = path.resolve(__dirname, 'devtools-loader.js');
+const DEVTOOLS_LOADER_DEST = path.resolve(__dirname, 'dist/devtools-loader.js');
+
+function minifyAndWrite(src, dest, label) {
+  try {
+    fs.mkdirSync(path.dirname(dest), { recursive: true });
+    const code = fs.readFileSync(src, 'utf8');
+    const result = esbuild.transformSync(code, { minify: true, legalComments: 'none' });
+    fs.writeFileSync(dest, result.code, 'utf8');
+    console.log('[sw]     built → ' + path.relative(__dirname, dest));
+  } catch (e) {
+    console.warn('[' + label + '] build failed:', e.message);
+  }
+}
+
+function buildSW() {
+  minifyAndWrite(SW_SRC, SW_DEST, 'sw');
+  minifyAndWrite(DEVTOOLS_LOADER_SRC, DEVTOOLS_LOADER_DEST, 'devtools-loader');
+}
 
 const now = new Date();
 const pad = function (n) { return String(n).padStart(2, '0'); };
@@ -21,8 +70,9 @@ fs.writeFileSync(
 const config = {
   entryPoints: ['src/js/modules/index.js'],
   bundle: true,
+  minify: true,
   format: 'iife',
-  outfile: 'src/js/d2c-enhancements.js',
+  outfile: 'dist/d2c-enhancements.js',
   banner: { js: banner },
 };
 
@@ -31,8 +81,19 @@ if (isWatch) {
     ctx.watch();
     console.log('[esbuild] watching... (stamped ' + ts + ')');
   });
+  buildLoader();
+  buildSW();
+  // Re-run on save
+  fs.watch(LOADER_SRC, function () { buildLoader(); });
+  fs.watch(PLATFORM_PREFIX, function () { buildLoader(); });
+  fs.watch(SW_SRC, function () { buildSW(); });
+  fs.watch(DEVTOOLS_LOADER_SRC, function () { buildSW(); });
 } else {
   esbuild.build(config)
-    .then(function () { console.log('[esbuild] built → src/js/d2c-enhancements.js (' + ts + ')'); })
+    .then(function () {
+      console.log('[esbuild] built → dist/d2c-enhancements.js (' + ts + ')');
+      buildLoader();
+      buildSW();
+    })
     .catch(function () { process.exit(1); });
 }

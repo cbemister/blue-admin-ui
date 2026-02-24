@@ -3,19 +3,27 @@
    ================================================================
    DevTools Local Overrides required (Sources → Overrides):
 
-     Remote URL                                                           Local file
-     ───────────────────────────────────────────────────────────────────  ─────────────────────────────────────────
-     admin.d2cmedia.ca/assets/js/sitepagesaddedjs.js                      devtools-loader.js
-     admin.d2cmedia.ca/d2c-sw.js                                          src/sw/d2c-sw.js
-     cdn.jsdelivr.net/gh/cbemister/blue-admin-ui@main/src/js/d2c-enhancements.js  src/js/d2c-enhancements.js
+     Remote URL                                                                Local file
+     ────────────────────────────────────────────────────────────────────────  ──────────────────────────────
+     admin.d2cmedia.ca/assets/js/sitepagesaddedjs.js                           dist/sitepagesaddedjs.js
+     admin.d2cmedia.ca/d2c-sw.js                                               src/sw/d2c-sw.js  (shim)
+     cdn.jsdelivr.net/gh/cbemister/blue-admin-ui@main/dist/d2c-enhancements.js dist/d2c-enhancements.js
+     cdn.jsdelivr.net/gh/cbemister/blue-admin-ui@main/dist/d2c-sw.js           dist/d2c-sw.js
+
+   The 1st override (sitepagesaddedjs.js) only needs redistributing if D2C
+   changes their platform code. Our loader logic is minified and inlined at
+   the bottom of dist/sitepagesaddedjs.js — rebuilt by `npm run build`.
+
+   The 2nd override (d2c-sw.js) is a permanent one-line shim that importScripts
+   the CDN URL — it never needs to change after initial setup.
+
+   The 3rd and 4th overrides let Chrome serve local dist/ builds instead of
+   hitting the CDN — so `npm run watch` changes are live on next page reload
+   with no push or CDN purge needed.
 
    The Service Worker caches all JS/CSS/images/fonts after the first
    page load — subsequent visits load in ~1–2 s instead of 11 s.
    It also blocks redundant external FontAwesome requests (~1.2 s saving).
-
-   DEV MODE: add the 3rd override above, then run `npm run watch`.
-   Chrome intercepts the CDN request and serves the local build directly —
-   no local server needed, no CDN rate limits.
    ================================================================ */
 
 (function () {
@@ -58,9 +66,9 @@
 
   // Load the enhancement script from jsDelivr CDN.
   // In dev mode, the 3rd DevTools override intercepts this request and serves
-  // the local build (src/js/d2c-enhancements.js) — no server or CDN needed.
+  // the local build (dist/d2c-enhancements.js) — no server or CDN needed.
   var script = document.createElement('script');
-  script.src = 'https://cdn.jsdelivr.net/gh/cbemister/blue-admin-ui@main/src/js/d2c-enhancements.js';
+  script.src = 'https://cdn.jsdelivr.net/gh/cbemister/blue-admin-ui@main/dist/d2c-enhancements.js';
   script.onerror = function () {
     console.warn('[D2C] Enhancement script failed to load');
     var el = document.getElementById('d2c-precollapse');
