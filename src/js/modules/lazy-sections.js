@@ -49,8 +49,16 @@ export function buildLazySections() {
   sections.forEach(function (s) {
     s.addEventListener('click', function () {
       if (_skipSave) return;
-      // Act only on expand clicks (section is currently closed, about to open)
-      if (!s.classList.contains('closed')) return;
+      // The native handler has already toggled the class by the time our listener
+      // fires. So: if the section is NOW closed → this was a collapse click, ignore.
+      // If the section is NOW open → this was an expand click, run accordion.
+      if (s.classList.contains('closed')) return;
+      // Accordion: collapse every other open h2 section
+      _skipSave = true;
+      sections.forEach(function (other) {
+        if (other !== s && !other.classList.contains('closed')) other.click();
+      });
+      _skipSave = false;
       restoreImages(getContentDiv(s));
       try { localStorage.setItem(_storageKey, s.id); } catch (e) {}
     });

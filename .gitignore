@@ -24,3 +24,4 @@ Thumbs.db
 
 # Claude Settings Files
 .claude/
+.github/

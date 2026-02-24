@@ -1,3 +1,5 @@
+import { addAuditEntry } from './audit-log.js';
+
 // Shared flag — set on save button click, consumed by the next ajaxSend
 var d2cSaveArmed = false;
 var d2cSaveArmTimer = null;
@@ -8,11 +10,11 @@ export function buildSaveIndicator() {
   indicator.id = 'd2c-save-indicator';
   indicator.className = 'd2c-save-idle';
   indicator.style.display = 'none';
-  indicator.innerHTML = '<i class="fa fa-check-circle"></i><span id="d2c-save-text">All changes saved</span>';
+  indicator.innerHTML = '<i class="fa fa-spinner fa-spin"></i><span>Saving…</span>';
   document.body.appendChild(indicator);
 
-  var textEl = document.getElementById('d2c-save-text');
   var iconEl = indicator.querySelector('i');
+  var textEl = indicator.querySelector('span');
   var hideTimer = null;
   var trackedXhr = null; // only watch the specific XHR we armed for
 
@@ -25,13 +27,10 @@ export function buildSaveIndicator() {
   }
   function showSaved() {
     trackedXhr = null;
-    indicator.className = 'd2c-save-success';
-    iconEl.className = 'fa fa-check-circle';
-    textEl.textContent = 'All changes saved';
-    hideTimer = setTimeout(function () {
-      indicator.className = 'd2c-save-idle';
-      indicator.style.display = 'none';
-    }, 3000);
+    // Success state is handled by the audit panel — just hide the spinner
+    indicator.className = 'd2c-save-idle';
+    indicator.style.display = 'none';
+    addAuditEntry();
   }
   function showError() {
     trackedXhr = null;

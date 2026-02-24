@@ -1,5 +1,25 @@
 # Changelog
 
+## 2026-02-24 — Accordion sections, TOC active state, audit log integration
+
+**Why:** Three independent UX issues: (1) expanding a section left all other sections open, making long pages harder to navigate; (2) the TOC active-link highlight used `IntersectionObserver` which kept a collapsed section's header highlighted if it was still in the viewport; (3) the "All changes saved" toast was redundant once the audit log panel started showing save history inline.
+
+**What:**
+- `lazy-sections.js`: added accordion behavior — when an h2 section is expanded, all other open h2 sections are collapsed. Uses a `_skipSave` guard to prevent the programmatic `click()` calls from redundantly writing to `localStorage`. Fixed the open/close direction check: the native click handler toggles the class before our listener fires, so the condition is now inverted (`!closed` → expand).
+- `toc.js`: replaced `IntersectionObserver` with `MutationObserver` on each section's `class` attribute. TOC entry is highlighted when the section's `closed` class is absent (i.e. it is open), not when its header is in the viewport. Added `syncActive()` call on init to set the correct state immediately.
+- `save-indicator.js`: removed the "All changes saved" success toast. On XHR success, the spinner hides immediately and `addAuditEntry()` is called — the audit panel becomes the sole save confirmation. Imports `addAuditEntry` from `audit-log.js`.
+- `.gitignore`: added `.github/` so the skills folder is not pushed.
+
+**Decision:** Accordion is implemented via programmatic `click()` rather than direct class manipulation so the platform's own expand/collapse handlers (image lazy-load, etc.) still fire correctly. `MutationObserver` on class changes is more reliable than `IntersectionObserver` for open/closed state because visibility and open state are independent — a section can be visible but closed.
+
+**Files:**
+- `src/js/modules/lazy-sections.js` — accordion on h2 section expand
+- `src/js/modules/toc.js` — MutationObserver active-link highlight
+- `src/js/modules/save-indicator.js` — success path calls `addAuditEntry()`, removes toast
+- `.gitignore` — ignore `.github/` skills folder
+
+---
+
 ## 2026-02-24 — Holiday Hours workflow for General page
 
 **Why:** Seasonal schedule changes (e.g. Christmas Eve, statutory holidays) require updating hours across all 6 departments simultaneously. Previously this required opening each department section individually, editing 7 rows each, and saving — error-prone and time-consuming. There was also no way to revert to normal hours after the holiday without repeating the same manual process.

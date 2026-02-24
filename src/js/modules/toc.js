@@ -61,16 +61,25 @@ export function buildSectionTOC() {
     header.querySelector('.d2c-toc-toggle').textContent = isMin ? '\u25bc' : '\u25b2';
   });
 
-  if ('IntersectionObserver' in window) {
-    var links = list.querySelectorAll('a');
-    var obs = new IntersectionObserver(function (entries) {
-      entries.forEach(function (entry) {
-        if (!entry.isIntersecting) return;
-        var idx = Array.prototype.indexOf.call(sections, entry.target);
-        links.forEach(function (l) { l.classList.remove('d2c-toc-active'); });
-        if (idx >= 0 && links[idx]) links[idx].classList.add('d2c-toc-active');
-      });
-    }, { rootMargin: '-80px 0px -60% 0px', threshold: 0 });
-    sections.forEach(function (s) { obs.observe(s); });
+  // Highlight the TOC entry whose section is currently open.
+  // MutationObserver on class changes is more reliable than IntersectionObserver
+  // because a closed section's header can still be visible in the viewport.
+  var links = list.querySelectorAll('a');
+
+  function syncActive() {
+    links.forEach(function (l) { l.classList.remove('d2c-toc-active'); });
+    sections.forEach(function (s, idx) {
+      if (!s.classList.contains('closed') && links[idx]) {
+        links[idx].classList.add('d2c-toc-active');
+      }
+    });
   }
+
+  // Watch every section header for class changes (open ↔ closed)
+  var mo = new MutationObserver(syncActive);
+  sections.forEach(function (s) {
+    mo.observe(s, { attributes: true, attributeFilter: ['class'] });
+  });
+
+  syncActive(); // set initial state
 }
