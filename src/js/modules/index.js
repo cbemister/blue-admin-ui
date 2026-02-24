@@ -10,7 +10,9 @@ import { buildScrollTop } from './scroll-top.js';
 import { buildFloatingSave } from './floating-save.js';
 import { buildHelpButton } from './help-button.js';
 import { prefetchSections } from './prefetch.js';
+import { buildAuditPanel } from './audit-log.js';
 import { buildLazySections } from './lazy-sections.js';
+import { buildHolidayHours } from './holiday-hours.js';
 
 // Guard: only run on site-specific pages (/sites/*) or local sandbox, and only once
 // Skips home, /inventory, /leads, and all other top-level routes on the live admin
@@ -42,6 +44,8 @@ if ((_isLocal || _isSitePage) && !document.getElementById('d2c-custom-styles')) 
     buildScrollTop();
     buildFloatingSave();
     buildHelpButton();
+    buildAuditPanel();
+    buildHolidayHours();
 
     // Prefetch stays idle-deferred — background work, never needs to be fast
     var deferIdle = typeof requestIdleCallback === 'function'

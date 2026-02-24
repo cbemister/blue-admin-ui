@@ -1,5 +1,29 @@
 # Changelog
 
+## 2026-02-24 — Holiday Hours workflow for General page
+
+**Why:** Seasonal schedule changes (e.g. Christmas Eve, statutory holidays) require updating hours across all 6 departments simultaneously. Previously this required opening each department section individually, editing 7 rows each, and saving — error-prone and time-consuming. There was also no way to revert to normal hours after the holiday without repeating the same manual process.
+
+**What:**
+- `holiday-hours.js` (new): Right-panel widget on `/sites/general` only. Three buttons — Save Snapshot (captures all 42 hour fields to `localStorage`), Edit (opens day-centric modal editor), and Restore Snapshot (applies snapshot back to DOM).
+  - **Snapshot storage key:** `d2c-hours-snapshot:{siteId}` where `siteId` is `#currentSiteID.value` — per-dealership isolation.
+  - **Modal editor:** Day-selector dropdown picks a day; table shows all 6 departments' open/close fields for that day with enable/disable checkboxes. Apply button writes values to the page via `syncSelectpicker()`.
+  - **Save confirmation modal:** After saving, `showInfoModal()` displays a compact dept×day summary grid so the user can verify what was captured.
+  - **Restore diff modal:** Before restoring, shows a before/after diff of only the changed dept/day rows, replacing the native `confirm()` dialog.
+- `stylesheet.js`: CSS for widget, editor modal, `#d2c-hh-info-overlay` confirmation modal, and all `.d2c-hh-diff-*` table classes. Removed `overflow-x:auto` from `h2.expandablesection+div` and `h5.expandablesection+div` to fix Bootstrap-select dropdown clipping.
+- `index.js`: imports `buildHolidayHours` and calls it inside `onReady()`.
+- `audit-log.js`: `AUDIT_PATH_MAP['general']` changed from `'/'` to `'/#footerWrapper'` so save-history QC links land at the hours section on the public dealership site.
+
+**Decision:** Snapshot stored in `localStorage` (not sessionStorage or a server call) — survives page reloads, costs nothing, and is scoped per dealer so two tabs on different dealers don't interfere. Day-centric modal was chosen over a full 7-day grid editor because it keeps the viewport height manageable and matches how holiday exceptions are actually applied (one day at a time). Custom `showInfoModal()` was built instead of using a third-party dialog library to keep the bundle self-contained and match existing modal styling.
+
+**Files:**
+- `src/js/modules/holiday-hours.js` — new module; full Holiday Hours workflow
+- `src/js/modules/stylesheet.js` — widget/modal CSS; overflow clipping fix
+- `src/js/modules/index.js` — import + call for `buildHolidayHours()`
+- `src/js/modules/audit-log.js` — General page audit link now anchors to `#footerWrapper`
+
+---
+
 ## 2026-02-24 — DevTools CDN override replaces localhost dev server
 
 **Why:** The localhost HTTP server approach (`serve.js` / `npm run dev`) was broken — Chrome's Service Worker was intercepting the `http://localhost:8765` fetch and failing with `TypeError: Failed to convert value to 'Response'` because the SW's catch handlers could return `null` or `undefined` when both cache and network failed, and `event.respondWith()` cannot accept a non-Response value. Even when the localhost error was swallowed, the CDN fallback hit the same SW bug. Additionally, iterating quickly via push → CDN purge → test was hitting jsDelivr rate limits.

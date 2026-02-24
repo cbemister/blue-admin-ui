@@ -11,6 +11,7 @@ Chrome DevTools Local Overrides enhancement layer for `admin.d2cmedia.ca`. Adds 
 - **Section TOC** — floating right panel with jump links and collapse/expand all
 - **Dealer nav** — floating left panel with the current dealer's page links
 - **Breadcrumb** — dealer › section › page in the header
+- **Holiday Hours** (`/sites/general` only) — right-panel widget to snapshot all department hours, edit a day's schedule across all 6 departments via modal, and restore to the saved snapshot; shows save-summary and restore-diff confirmation modals
 - **Floating save button** — always visible in the right panel
 - **Save indicator** — AJAX-aware status notification (Saving… / Saved / Error)
 - **Scroll to top** — appears after scrolling 400px
