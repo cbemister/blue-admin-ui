@@ -450,7 +450,4 @@ var alertEX = {
 
 */
 
-
-/* ================================================================
-
 (function(){if(!window._d2cLoaderRan){window._d2cLoaderRan=!0;var n=document.createElement("style");n.id="d2c-precollapse",n.textContent="#content .expandablesection+div,#content .expandablesection+table{display:none!important}",(document.head||document.documentElement).appendChild(n),setTimeout(function(){var e=document.getElementById("d2c-precollapse");e&&e.parentNode.removeChild(e)},5e3),"serviceWorker"in navigator&&navigator.serviceWorker.register("/d2c-sw.js").then(function(e){var o=e.active?"active":e.installing?"installing":"waiting";console.log("[D2C] SW:",o,"| controller:",!!navigator.serviceWorker.controller)}).catch(function(e){console.warn("[D2C] Service Worker not active:",e.message)});var t=document.createElement("script");t.src="https://cdn.jsdelivr.net/gh/cbemister/blue-admin-ui@main/dist/d2c-enhancements.js",t.onerror=function(){console.warn("[D2C] Enhancement script failed to load");var e=document.getElementById("d2c-precollapse");e&&e.parentNode.removeChild(e)},document.head.appendChild(t)}})();
