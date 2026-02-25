@@ -1,5 +1,32 @@
 # Changelog
 
+## 2026-02-25 — Command palette filter bar with pinned defaults
+
+**Why:** The command palette showed all pages and dealers at once with no way to narrow by page type or brand group. Users who repeatedly navigate to the same page (e.g. Promotions) across many dealers, or primarily work within one brand (e.g. Stellantis), had to type a search every time or scroll through unfiltered results.
+
+**What:**
+- `palette.js` — New two-row filter bar inserted between the search input and results:
+  - **Pages row**: 12 fixed pills, one per section (General, Homepage, New Vehicles, Pre-owned, Promotions, Financing, Service, Our Team, Contact Us, Custom Pages, Clearance, Statistics). Multi-select with OR logic within the group.
+  - **Brands row**: dynamically built from brand values present in the current side-menu (Stellantis, Volkswagen, BMW, etc.). Multi-select with OR logic within the group.
+  - Both groups apply AND logic between them (e.g. (Promotions OR Our Team) AND Stellantis).
+  - Hovering a pill reveals a gold star; clicking the star pins it as a default saved to `localStorage` so it persists across browser restarts.
+  - Active filter state (selected but not necessarily pinned) is also persisted to `localStorage` under separate keys (`d2c-palette-page-active`, `d2c-palette-brand-active`) so it survives dealer navigation and page reloads.
+  - When page filters are active, all result badges show green **Page** (not NAV) since all results are going to a specific page.
+  - Empty-query behaviour changes when filters are active: shows cross-dealer `nav` entries (the primary use-case — e.g. all Stellantis Promotions pages) instead of falling back to current-dealer `page` entries only.
+- `palette.js` — `scrapeCommands()` annotates every command with `section` (path slug) and `brand` (via `getBrand()`) fields for filter matching.
+- `palette.js` — `NAV_SECTIONS` module-level array replaces the inner `pages` array in `scrapeCommands()`; shared between the scraper and `buildFilterBar()`.
+- `brand-nav.js` — `getBrand()` exported so `palette.js` can reuse the full `SITE_BRAND` + `BRAND_FRAGS` lookup without duplication.
+- `stylesheet.js` — 10 new CSS rules for the filter bar (`#d2c-palette-filters`, `.d2c-pf-row`, `.d2c-pf-label`, `.d2c-pf-pill`, hover/active/pinned states, star icon). Palette results `max-height` reduced from 380 px to 300 px to keep overall palette height reasonable with the two-row filter bar added.
+
+**Decision:** Active filter state is stored in `localStorage` (not `sessionStorage`) because dealer navigation triggers a full page reload, wiping JS module state. Separate keys for active vs. default state allow the two concepts to diverge: you can activate a filter for the current session without pinning it permanently. Brand pills are built dynamically from `commands[]` rather than hardcoded so new `SITE_BRAND` entries appear automatically. Page pills are fixed (matching `NAV_SECTIONS`) since the section list is stable and known at build time. Toggling an active pill off does not unpin it — only a star click changes the default; this prevents accidental unpin when just browsing.
+
+**Files:**
+- `src/js/modules/palette.js` — filter bar, pinned defaults, active state persistence, annotated commands
+- `src/js/modules/brand-nav.js` — exported `getBrand`
+- `src/js/modules/stylesheet.js` — filter bar CSS, reduced palette results max-height
+
+---
+
 ## 2026-02-25 — Promo Manager widget + audit badge sync + help menu update
 
 **Why:** The promotions page has no overview of all promos or their live status — writers had to scroll through every section to find what's active, expired, or upcoming. Separately, the audit-log badge had fragile `style.display` management scattered across every call-site, and changes recorded in one tab were not reflected in another tab's badge. The help dropdown's features list was also stale, missing brand nav, holiday hours, promo manager, audit log, and scroll-to-top.

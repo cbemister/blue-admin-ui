@@ -51,7 +51,7 @@ var BRAND_FRAGS = {
   'BMW':               ['bmw', 'mini'],
 };
 
-function getBrand(siteId, domainTitle) {
+export function getBrand(siteId, domainTitle) {
   // Primary: direct siteID lookup
   var id = parseInt(siteId, 10);
   if (SITE_BRAND[id]) return SITE_BRAND[id];

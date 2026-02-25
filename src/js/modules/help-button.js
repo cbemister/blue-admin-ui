@@ -38,7 +38,7 @@ export function buildHelpButton() {
       '<ul class="d2c-help-list">' +
         '<li>Sticky header with breadcrumb</li>' +
         '<li>Brand nav — ‹ Dealer ▾ › pill in breadcrumb</li>' +
-        '<li>Ctrl+K command palette for pages &amp; dealers</li>' +
+        '<li>Ctrl+K command palette — fuzzy search with page &amp; brand filters, pinned defaults</li>' +
         '<li>Section table of contents (right panel)</li>' +
         '<li>Dealer navigation (left panel)</li>' +
         '<li>Holiday Hours editor &amp; snapshot (/sites/general)</li>' +

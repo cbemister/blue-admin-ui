@@ -8,7 +8,7 @@ Chrome DevTools Local Overrides enhancement layer for `admin.d2cmedia.ca`. Adds 
 - **Brand nav** — `‹ [Dealer Name ▾] ›` widget in the breadcrumb: prev/next arrows cycle through same-brand dealers, pill opens dropdown listing all dealers in the group; idle-time SW prewarming for all same-brand dealers at the current path
 - **FOUC prevention** — body hidden (`opacity:0`) immediately on script init, animated shimmer bar at page top; fades in once all UI features are built
 - **Help button** — header badge showing build date; dropdown with keyboard shortcuts and feature list
-- **Command palette** (Ctrl+K) — fuzzy search across all pages and dealerships
+- **Command palette** (Ctrl+K) — fuzzy search across all pages and dealerships; two-row filter bar (page type + brand) with multi-select, pinned defaults (star icon), and active state persisted in `localStorage` across dealer navigation and browser restarts
 - **Lazy sections** — collapses all expandable sections on load, defers image fetches until a section is opened; remembers which section was last open per page and restores it on return
 - **Section TOC** — floating right panel with jump links and collapse/expand all
 - **Dealer nav** — floating left panel with the current dealer's page links
