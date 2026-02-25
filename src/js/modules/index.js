@@ -14,6 +14,7 @@ import { prefetchSections } from './prefetch.js';
 import { buildAuditPanel } from './audit-log.js';
 import { buildLazySections } from './lazy-sections.js';
 import { buildHolidayHours } from './holiday-hours.js';
+import { buildPromoManager } from './promo-manager.js';
 
 // Guard: only run on site-specific pages (/sites/*) or local sandbox, and only once
 // Skips home, /inventory, /leads, and all other top-level routes on the live admin
@@ -55,6 +56,7 @@ if ((_isLocal || _isSitePage) && !document.getElementById('d2c-custom-styles')) 
     buildHelpButton();
     buildAuditPanel();
     buildHolidayHours();
+    buildPromoManager();
 
     // Inform the SW which dealer is active so HTML pages are cached under the
     // correct dealer-scoped key (avoids cross-dealer HTML collisions).

@@ -37,11 +37,16 @@ export function buildHelpButton() {
       '<div class="d2c-help-section">Features</div>' +
       '<ul class="d2c-help-list">' +
         '<li>Sticky header with breadcrumb</li>' +
+        '<li>Brand nav — ‹ Dealer ▾ › pill in breadcrumb</li>' +
+        '<li>Ctrl+K command palette for pages &amp; dealers</li>' +
         '<li>Section table of contents (right panel)</li>' +
         '<li>Dealer navigation (left panel)</li>' +
-        '<li>Ctrl+K command palette for pages &amp; dealers</li>' +
+        '<li>Holiday Hours editor &amp; snapshot (/sites/general)</li>' +
+        '<li>Promo Manager — status, duplicate, templates (/sites/promotions)</li>' +
+        '<li>Save history &amp; QC log</li>' +
         '<li>Floating save button + save status indicator</li>' +
         '<li>Section auto-collapse &amp; session memory</li>' +
+        '<li>Scroll-to-top button</li>' +
         '<li>Idle-time prefetch of nav links</li>' +
       '</ul>' +
     '</div>';

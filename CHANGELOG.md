@@ -1,5 +1,27 @@
 # Changelog
 
+## 2026-02-25 — Promo Manager widget + audit badge sync + help menu update
+
+**Why:** The promotions page has no overview of all promos or their live status — writers had to scroll through every section to find what's active, expired, or upcoming. Separately, the audit-log badge had fragile `style.display` management scattered across every call-site, and changes recorded in one tab were not reflected in another tab's badge. The help dropdown's features list was also stale, missing brand nav, holiday hours, promo manager, audit log, and scroll-to-top.
+
+**What:**
+- `promo-manager.js` (new): Right-panel widget for `/sites/promotions` and `/sites/grouppromotions`. Groups promotions into four accordion sections (New Vehicle, Used Vehicle, Service/Parts, Other). Each promo item shows a colour-coded status dot (green=active, red=expired, amber=upcoming), title, and a duplicate button. Clicking an item selects it and scrolls to its row. "+ Add" button per section calls `window.addPromo(key)` and observes the DOM for the new row to scroll it into view. Inline "Load from existing" select injected into blank promo rows so content can be copied without manual re-entry. Templates section: save any promo row's fields under a custom name and apply them to blank rows or the selected promo. All UI state (section collapse, template list, widget minimized) persisted in `localStorage`.
+- `audit-log.js` — `_setBadge()` refactored: no longer accepts a `count` parameter; reads from `loadEntries()` internally on every call. Badge is always visible (removed `style="display:none"` init attribute and all `.style.display` mutations). When count is 0 always shows `✓` (green) regardless of whether the list is empty. Added `window.storage` event listener so the badge and list update when a save is recorded in another tab.
+- `stylesheet.js` — Added ~78 CSS rules for the Promo Manager widget (status dots, accordion sections, template save/apply UI, inline load select, highlight pulse animation).
+- `help-button.js` — Features list in the `?` dropdown updated to include all current modules: brand nav, holiday hours, promo manager, save history, and scroll-to-top. Previously showed only 7 items; now shows 12.
+
+**Decision:** Promo Manager reads from the live DOM rather than a separate data store so it stays in sync without intercepting the platform's save mechanism. A `MutationObserver` on each section `tbody` re-renders the list when promos are added, removed, or reordered. Template fields use `savefield`/`fieldname` attribute matching with index wildcards (`[*]`) so a template saved from one row applies correctly to any other row regardless of numeric index. `_setBadge()` reading its own data avoids stale-count bugs where the call-site computed the count before the write completed.
+
+**Files:**
+- `src/js/modules/promo-manager.js` — new; Promo Manager widget for `/sites/promotions` and `/sites/grouppromotions`
+- `src/js/modules/audit-log.js` — `_setBadge()` self-contained; cross-tab `storage` sync
+- `src/js/modules/index.js` — `buildPromoManager()` import and call
+- `src/js/modules/stylesheet.js` — Promo Manager CSS
+- `src/js/modules/help-button.js` — features list updated to include all current features
+- `.github/skills/ship/SKILL.md` — added step to sync features list in `help-button.js` on every ship
+
+---
+
 ## 2026-02-24 — Brand nav, dealer caching, dist build pipeline, minification
 
 **Why:** Four independent improvements: (1) navigating between dealers in the same brand group requires reopening the palette every time — a `‹ [Dealer ▾] ›` widget in the breadcrumb makes this a one-click action; (2) the palette's dealer list was sourced from `#dealername select.selectpicker` which is unreliable and jQuery-dependent — needs rewriting against `#side-menu`; (3) the page flashes unstyled content briefly while UI features initialise; (4) other users sharing this SW had to manually update `d2c-sw.js` in their overrides folder on every SW change — a shim pattern eliminates this.

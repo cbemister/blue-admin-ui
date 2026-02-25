@@ -178,33 +178,26 @@ function _toggleQC(id) {
   });
   saveEntries(entries);
   _refreshList();
-  _setBadge(_pendingCount(entries));
+  _setBadge();
 }
 
 function _removeEntry(id) {
   var entries = loadEntries().filter(function (e) { return e.id !== id; });
   saveEntries(entries);
   _refreshList();
-  _setBadge(_pendingCount(entries));
+  _setBadge();
 }
 
-function _setBadge(count) {
+function _setBadge() {
   if (!_badgeEl) return;
+  var count = _pendingCount(loadEntries());
   if (count > 0) {
     _badgeEl.textContent = count > 9 ? '9+' : String(count);
-    _badgeEl.style.display = '';
     _badgeEl.classList.remove('d2c-al-badge-clear');
   } else {
-    // Show green dot if there are entries but all QC'd, else hide
-    var allEntries = loadEntries();
-    if (allEntries.length > 0) {
-      _badgeEl.textContent = '\u2713';
-      _badgeEl.style.display = '';
-      _badgeEl.classList.add('d2c-al-badge-clear');
-    } else {
-      _badgeEl.style.display = 'none';
-      _badgeEl.classList.remove('d2c-al-badge-clear');
-    }
+    // Nothing pending — green checkmark (covers both empty list and all-QC'd)
+    _badgeEl.textContent = '\u2713';
+    _badgeEl.classList.add('d2c-al-badge-clear');
   }
 }
 
@@ -219,7 +212,7 @@ export function addAuditEntry() {
   entries.unshift(ctx);
   saveEntries(entries);
   _refreshList();
-  _setBadge(_pendingCount(entries));
+  _setBadge();
   openAuditPanel();
 }
 
@@ -255,7 +248,7 @@ export function buildAuditPanel() {
   toggle.innerHTML =
     '<i class="fa fa-history"></i>' +
     '<span>Save History</span>' +
-    '<span id="d2c-al-badge" style="display:none"></span>';
+    '<span id="d2c-al-badge"></span>';
 
   wrap.appendChild(_panel);
   wrap.appendChild(toggle);
@@ -266,7 +259,7 @@ export function buildAuditPanel() {
 
   _refreshList();
   // Badge shows pending (unQC'd) count on load
-  _setBadge(_pendingCount(loadEntries()));
+  _setBadge();
 
   // Refresh relative timestamps every minute while panel is open
   setInterval(function () {
@@ -287,7 +280,15 @@ export function buildAuditPanel() {
   _panel.querySelector('#d2c-al-clear').addEventListener('click', function () {
     saveEntries([]);
     _refreshList();
-    _setBadge(0);
+    _setBadge();
+  });
+
+  // Sync badge + list when another tab changes the audit log
+  window.addEventListener('storage', function (ev) {
+    if (ev.key === STORAGE_KEY) {
+      _refreshList();
+      _setBadge();
+    }
   });
 
   // Event delegation
