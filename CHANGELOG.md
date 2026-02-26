@@ -1,5 +1,23 @@
 # Changelog
 
+## 2026-02-26 — Promotions page UX enhancements
+
+**Why:** The promotions admin interface shows French and English inputs side-by-side but most sites are English-only. The optional OEM fields (Subheading, Main/2nd value + disclaimers) clutter rows that rarely use them. The Description field holds dense HTML that is difficult to edit in a small textarea.
+
+**What:**
+- `promo-manager.js` — Language toggle (EN / FR / Both) added as first item under Shortcuts in the right panel. Clicking EN or FR tags each `.table-cell-40`/`.table-cell-20` with `d2c-lang-cell-en` or `d2c-lang-cell-fr` and hides the inactive column via CSS on `#page-wrapper`. "Both" removes the filter and shows all columns. Mode persisted to `localStorage` key `d2c-promo-lang`.
+- `promo-manager.js` — OEM optional field expander injected per promo row after the Title row. Collapses Subheading, Main value, Main value disclaimer, 2nd value, and 2nd value disclaimer by default behind a `▸ Show optional fields` toggle. State persisted per-row in `localStorage`.
+- `promo-manager.js` — Full-screen HTML editor modal (`#d2c-desc-modal`) injected once into `document.body`. A `⛶` expand button added inline with the pencil icon on every `richtext="1"` textarea in promo sections (Description, Disclaimer, Terms & Conditions). Opens a 90vw × 90vh monospace editor; closing writes value back and fires `input`/`change` events so the platform detects the edit.
+- `stylesheet.js` — CSS for all three features added.
+
+**Decision:** Language state is stored as a class on `#page-wrapper` so a single CSS rule hides all matching cells at once without touching DOM display properties per-element — this keeps the approach resilient to rows added after init (re-applied in `buildPromoList()`). OEM expander state is per-row rather than global so rows that genuinely need optional fields (e.g. OEM promos) can stay open independently. A single description modal is reused across all rows rather than one per field to minimize DOM footprint.
+
+**Files:**
+- `src/js/modules/promo-manager.js` — New functions: `applyLangMode`, `applyLangCellMarkers`, `buildLangToggle`, `buildOemExpanders`, `buildDescModal`, `wireDescExpanders`
+- `src/js/modules/stylesheet.js` — CSS for language toggle, OEM expander, and description modal
+
+---
+
 ## 2026-02-25 — Command palette filter bar with pinned defaults
 
 **Why:** The command palette showed all pages and dealers at once with no way to narrow by page type or brand group. Users who repeatedly navigate to the same page (e.g. Promotions) across many dealers, or primarily work within one brand (e.g. Stellantis), had to type a search every time or scroll through unfiltered results.

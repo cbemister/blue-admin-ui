@@ -477,6 +477,35 @@ export function injectStyles() {
     '.d2c-pm-tpl-del:hover{background:#ef4444!important;border-color:#ef4444!important;color:#fff!important}',
     '.d2c-pm-tpl-err{background:#ef4444!important;border-color:#ef4444!important;color:#fff!important}',
 
+    /* ── Promo Manager — Language toggle ── */
+    '#d2c-pm-lang-toggle{display:flex!important;align-items:center!important;justify-content:space-between!important;padding:5px 8px!important;background:var(--surface)!important;border:1px solid var(--border)!important;border-radius:var(--r-lg)!important;box-shadow:var(--shadow-md)!important;margin-bottom:4px!important}',
+    '.d2c-pm-lang-label{font-size:10px!important;font-weight:700!important;text-transform:uppercase!important;letter-spacing:.5px!important;color:var(--text-muted)!important}',
+    '.d2c-pm-lang-pills{display:flex!important;gap:2px!important;background:var(--bg)!important;border-radius:var(--r-sm)!important;padding:2px!important;border:1px solid var(--border)!important}',
+    '.d2c-pm-lang-btn{padding:2px 9px!important;font-size:11px!important;font-weight:600!important;border-radius:var(--r-sm)!important;border:none!important;background:transparent!important;color:var(--text-muted)!important;cursor:pointer!important;font-family:var(--font)!important;transition:all var(--t)!important;letter-spacing:.3px!important}',
+    '.d2c-pm-lang-btn.d2c-pm-lang-active{background:var(--d2c-navy)!important;color:#fff!important}',
+    /* Lang cell visibility — hides the inactive language column and expands the active one */
+    '#page-wrapper.d2c-lang-en .d2c-lang-cell-fr{display:none!important}',
+    '#page-wrapper.d2c-lang-en .d2c-lang-cell-en{width:80%!important;max-width:80%!important}',
+    '#page-wrapper.d2c-lang-fr .d2c-lang-cell-en{display:none!important}',
+    '#page-wrapper.d2c-lang-fr .d2c-lang-cell-fr{width:80%!important;max-width:80%!important}',
+
+    /* ── Promo Manager — Optional field expanders ── */
+    '.d2c-pm-oem-expander{padding:6px 0 5px 20%!important;line-height:1!important}',
+    '.d2c-pm-oem-toggle{background:none!important;border:none!important;padding:0!important;font-size:12px!important;color:var(--text-muted)!important;cursor:pointer!important;font-family:var(--font)!important;text-decoration:underline!important;text-underline-offset:2px!important}',
+    '.d2c-pm-oem-toggle:hover{color:var(--d2c-navy)!important}',
+
+    /* ── Promo Manager — Full-screen HTML description editor ── */
+    '#d2c-desc-modal{display:none!important;position:fixed!important;inset:0!important;background:rgba(0,0,0,.6)!important;z-index:10000!important;align-items:center!important;justify-content:center!important}',
+    '#d2c-desc-modal.d2c-desc-modal-open{display:flex!important}',
+    '#d2c-desc-modal-inner{background:#fff!important;border-radius:var(--r-lg)!important;width:90vw!important;height:90vh!important;display:flex!important;flex-direction:column!important;overflow:hidden!important;box-shadow:0 20px 60px rgba(0,0,0,.4)!important}',
+    '#d2c-desc-modal-hdr{padding:12px 16px!important;border-bottom:1px solid var(--border)!important;display:flex!important;align-items:center!important;justify-content:space-between!important;flex-shrink:0!important;background:var(--surface)!important}',
+    '#d2c-desc-modal-title{font-weight:700!important;font-size:13px!important;color:var(--d2c-navy)!important;letter-spacing:.3px!important}',
+    '#d2c-desc-modal-close{background:none!important;border:none!important;font-size:22px!important;color:var(--text-muted)!important;cursor:pointer!important;padding:0 4px!important;line-height:1!important;font-family:inherit!important}',
+    '#d2c-desc-modal-close:hover{color:#ef4444!important}',
+    '#d2c-desc-modal-editor{flex:1!important;width:100%!important;border:none!important;padding:16px 20px!important;font-family:monospace!important;font-size:13px!important;line-height:1.7!important;resize:none!important;color:#1a1a1a!important;outline:none!important;box-sizing:border-box!important}',
+    '.d2c-desc-expand{display:inline-block!important;background:none!important;border:none!important;font-size:16px!important;color:var(--text-muted)!important;cursor:pointer!important;padding:0!important;line-height:1!important;margin-left:5px!important;vertical-align:middle!important;font-family:inherit!important;opacity:.65!important}',
+    '.d2c-desc-expand:hover{color:var(--d2c-navy)!important;opacity:1!important}',
+
     /* FOUC prevention — body hidden until builds complete, then fades in */
     'body.d2c-loading{opacity:0!important}',
     'body.d2c-ready{opacity:1!important;transition:opacity .25s ease!important}',

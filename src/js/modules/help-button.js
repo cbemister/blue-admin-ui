@@ -42,7 +42,7 @@ export function buildHelpButton() {
         '<li>Section table of contents (right panel)</li>' +
         '<li>Dealer navigation (left panel)</li>' +
         '<li>Holiday Hours editor &amp; snapshot (/sites/general)</li>' +
-        '<li>Promo Manager — status, duplicate, templates (/sites/promotions)</li>' +
+        '<li>Promo Manager — status, duplicate, templates, EN/FR toggle, HTML editor (/sites/promotions)</li>' +
         '<li>Save history &amp; QC log</li>' +
         '<li>Floating save button + save status indicator</li>' +
         '<li>Section auto-collapse &amp; session memory</li>' +

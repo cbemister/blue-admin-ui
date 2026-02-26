@@ -597,6 +597,10 @@ function buildPromoList() {
   injectLoadSelects();
   // Keep the template source dropdown in sync with current promos
   refreshTemplatePromoDropdown();
+  // Refresh language cell markers and optional-field expanders for any new rows
+  applyLangCellMarkers();
+  buildOemExpanders();
+  wireDescExpanders();
 }
 
 // ── Inline "load from existing" select on blank rows ──────────────────────
@@ -669,6 +673,242 @@ function injectLoadSelects() {
   });
 }
 
+// ── Language toggle ────────────────────────────────────────────────────────
+var LANG_KEY = 'd2c-promo-lang';
+
+function applyLangMode(mode) {
+  var pw = document.getElementById('page-wrapper');
+  if (!pw) return;
+  pw.classList.remove('d2c-lang-en', 'd2c-lang-fr');
+  if (mode === 'fr') pw.classList.add('d2c-lang-fr');
+  else if (mode === 'en') pw.classList.add('d2c-lang-en');
+  // 'both' — no class added; all columns visible
+
+  try { localStorage.setItem(LANG_KEY, mode); } catch (e) {}
+  ['en', 'fr', 'both'].forEach(function (l) {
+    var btn = document.getElementById('d2c-pm-lang-' + l);
+    if (btn) btn.classList.toggle('d2c-pm-lang-active', l === mode);
+  });
+}
+
+// Walk every promo section and tag each .table-cell-40 / .table-cell-20 with
+// d2c-lang-cell-fr or d2c-lang-cell-en based on the d2c_language of its fields.
+// Idempotent — skips cells that already carry a lang class.
+function applyLangCellMarkers() {
+  SECTIONS.forEach(function (section) {
+    var container = document.getElementById(section.containerId);
+    if (!container) return;
+    container.querySelectorAll('.table-row').forEach(function (tableRow) {
+      tableRow.querySelectorAll('.table-cell-40,.table-cell-20').forEach(function (cell) {
+        if (cell.classList.contains('d2c-lang-cell-fr') || cell.classList.contains('d2c-lang-cell-en')) return;
+        // Field-tagged cells
+        var hasFr = !!cell.querySelector('[d2c_language="FRENCH"]');
+        var hasEn = !!cell.querySelector('[d2c_language="ENGLISH"]');
+        if (hasFr) cell.classList.add('d2c-lang-cell-fr');
+        if (hasEn) cell.classList.add('d2c-lang-cell-en');
+        // Column header label cells inside .table-row (fallback text match)
+        if (!hasFr && !hasEn) {
+          var txt = cell.textContent.trim().toLowerCase();
+          if (txt === 'french')  cell.classList.add('d2c-lang-cell-fr');
+          if (txt === 'english') cell.classList.add('d2c-lang-cell-en');
+        }
+      });
+    });
+  });
+}
+
+function buildLangToggle(panel) {
+  if (document.getElementById('d2c-pm-lang-toggle')) return;
+  var savedMode = 'en';
+  try { savedMode = localStorage.getItem(LANG_KEY) || 'en'; } catch (e) {}
+
+  var wrap = document.createElement('div');
+  wrap.id = 'd2c-pm-lang-toggle';
+  wrap.innerHTML =
+    '<span class="d2c-pm-lang-label">Language:</span>' +
+    '<div class="d2c-pm-lang-pills">' +
+      '<button id="d2c-pm-lang-en"   type="button" class="d2c-pm-lang-btn' + (savedMode === 'en'   ? ' d2c-pm-lang-active' : '') + '">EN</button>' +
+      '<button id="d2c-pm-lang-fr"   type="button" class="d2c-pm-lang-btn' + (savedMode === 'fr'   ? ' d2c-pm-lang-active' : '') + '">FR</button>' +
+      '<button id="d2c-pm-lang-both" type="button" class="d2c-pm-lang-btn' + (savedMode === 'both' ? ' d2c-pm-lang-active' : '') + '">Both</button>' +
+    '</div>';
+
+  panel.appendChild(wrap);
+
+  ['en', 'fr', 'both'].forEach(function (l) {
+    document.getElementById('d2c-pm-lang-' + l).addEventListener('click', function () {
+      applyLangMode(l);
+    });
+  });
+
+  // Apply stored mode immediately so cells hide/show on first paint
+  applyLangMode(savedMode);
+}
+
+// ── OEM / optional field expanders ────────────────────────────────────────
+// Collapses Subheading, Main value, Main value disclaimer, 2nd value, and
+// 2nd value disclaimer rows (the .service-option.oem rows between _titletr
+// and _imagetr) under a "Show optional fields" toggle per promo row.
+function buildOemExpanders() {
+  SECTIONS.forEach(function (section) {
+    var container = document.getElementById(section.containerId);
+    if (!container) return;
+
+    var re = new RegExp('^' + section.prefix + '_title(\\d+)$');
+    container.querySelectorAll('tr[id]').forEach(function (row) {
+      var m = row.id.match(re);
+      if (!m) return;
+      if (row.querySelector('.d2c-pm-oem-expander')) return; // already done
+
+      var n = m[1];
+      var prefix = section.prefix + '_title' + n;
+      var titleTr = row.querySelector('[id="' + prefix + '_titletr"]');
+      var imageTr = row.querySelector('[id="' + prefix + '_imagetr"]');
+      if (!titleTr) return;
+
+      // Collect the rows between titleTr and imageTr (exclusive)
+      var oemRows = [];
+      var node = titleTr.nextElementSibling;
+      while (node && (!imageTr || node !== imageTr)) {
+        if (!node.classList.contains('d2c-pm-load-wrap') &&
+            !node.classList.contains('d2c-pm-oem-expander')) {
+          oemRows.push(node);
+        }
+        node = node.nextElementSibling;
+      }
+      if (!oemRows.length) return;
+
+      // Restore persisted open/closed state (default: closed)
+      var storeKey = 'd2c-oem-exp:' + row.id;
+      var isOpen = false;
+      try { isOpen = localStorage.getItem(storeKey) === '1'; } catch (e) {}
+
+      oemRows.forEach(function (r) {
+        r.classList.add('d2c-oem-field');
+        r.style.display = isOpen ? '' : 'none';
+      });
+
+      // Build the toggle button
+      var exp = document.createElement('div');
+      exp.className = 'd2c-pm-oem-expander';
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'd2c-pm-oem-toggle';
+      btn.textContent = isOpen ? '\u25be Hide optional fields' : '\u25b8 Show optional fields';
+      exp.appendChild(btn);
+
+      // Insert after titleTr, or after the load-wrap if one was already injected
+      var anchor = titleTr;
+      var nextSib = anchor.nextElementSibling;
+      if (nextSib && nextSib.classList.contains('d2c-pm-load-wrap')) anchor = nextSib;
+      anchor.insertAdjacentElement('afterend', exp);
+
+      btn.addEventListener('click', function () {
+        var hidden = oemRows[0].style.display === 'none';
+        oemRows.forEach(function (r) { r.style.display = hidden ? '' : 'none'; });
+        btn.textContent = hidden ? '\u25be Hide optional fields' : '\u25b8 Show optional fields';
+        try { localStorage.setItem(storeKey, hidden ? '1' : '0'); } catch (e) {}
+      });
+    });
+  });
+}
+
+// ── Description / richtext full-screen HTML editor modal ──────────────────
+var _descModalTargetId = null;
+
+function buildDescModal() {
+  if (document.getElementById('d2c-desc-modal')) return;
+
+  var modal = document.createElement('div');
+  modal.id = 'd2c-desc-modal';
+  modal.innerHTML =
+    '<div id="d2c-desc-modal-inner">' +
+      '<div id="d2c-desc-modal-hdr">' +
+        '<span id="d2c-desc-modal-title">HTML Editor</span>' +
+        '<button id="d2c-desc-modal-close" type="button" title="Save & close">\u00d7</button>' +
+      '</div>' +
+      '<textarea id="d2c-desc-modal-editor" spellcheck="false" placeholder="Enter HTML content\u2026"></textarea>' +
+    '</div>';
+  document.body.appendChild(modal);
+
+  function closeModal() {
+    if (_descModalTargetId) {
+      var target = document.getElementById(_descModalTargetId);
+      if (target) {
+        var val = document.getElementById('d2c-desc-modal-editor').value;
+        target.value = val;
+        target.setAttribute('dirty', 'true');
+        target.dispatchEvent(new Event('input',  { bubbles: true }));
+        target.dispatchEvent(new Event('change', { bubbles: true }));
+        // Sync CKEditor instance if active
+        try {
+          if (window.CKEDITOR && window.CKEDITOR.instances[_descModalTargetId]) {
+            window.CKEDITOR.instances[_descModalTargetId].setData(val);
+          }
+        } catch (e) {}
+      }
+    }
+    modal.classList.remove('d2c-desc-modal-open');
+    _descModalTargetId = null;
+  }
+
+  document.getElementById('d2c-desc-modal-close').addEventListener('click', closeModal);
+  // Backdrop click closes
+  modal.addEventListener('click', function (e) { if (e.target === modal) closeModal(); });
+  // Escape key
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && modal.classList.contains('d2c-desc-modal-open')) closeModal();
+  });
+}
+
+// Inject a ⛶ expand button next to each richtext textarea in promo sections.
+// Idempotent — skips containers that already have the button.
+function wireDescExpanders() {
+  SECTIONS.forEach(function (section) {
+    var container = document.getElementById(section.containerId);
+    if (!container) return;
+
+    container.querySelectorAll('textarea[richtext="1"][savefield]').forEach(function (ta) {
+      if (!ta.id) return;
+      var containerDiv = ta.closest('[id$="_container"]');
+      if (!containerDiv) return;
+      if (containerDiv.querySelector('.d2c-desc-expand')) return; // already wired
+
+      var richSpan = containerDiv.querySelector('span');
+      if (!richSpan) return;
+
+      var expandBtn = document.createElement('button');
+      expandBtn.type = 'button';
+      expandBtn.className = 'd2c-desc-expand';
+      expandBtn.title = 'Open full-screen HTML editor';
+      expandBtn.textContent = '\u26f6'; // ⛶
+      richSpan.appendChild(expandBtn);
+
+      expandBtn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var modal  = document.getElementById('d2c-desc-modal');
+        var editor = document.getElementById('d2c-desc-modal-editor');
+        if (!modal || !editor) return;
+
+        _descModalTargetId = ta.id;
+        editor.value = ta.value;
+
+        // Derive a human-readable label from the row context
+        var rowEl = ta.closest('[id$="tr"]');
+        var label = 'HTML Editor';
+        if (rowEl) {
+          var strong = rowEl.querySelector('.table-cell-20 strong');
+          if (strong) label = strong.textContent.replace(/[*:]/g, '').trim() + ' \u2014 HTML Editor';
+        }
+        var titleEl = document.getElementById('d2c-desc-modal-title');
+        if (titleEl) titleEl.textContent = label;
+
+        modal.classList.add('d2c-desc-modal-open');
+        editor.focus();
+      });
+    });
+  });
+}
+
 function buildWidget() {
   if (document.getElementById('d2c-pm-widget')) return;
 
@@ -715,6 +955,8 @@ function buildWidget() {
     lbl.textContent = 'Shortcuts';
     panel.appendChild(lbl);
   }
+  // Language toggle — must go before the widget so it appears first in the panel
+  buildLangToggle(panel);
   panel.appendChild(widget);
 
   // Cache list container references
@@ -894,6 +1136,7 @@ export function buildPromoManager() {
 
   buildWidget();
   buildPromoList();
+  buildDescModal();
 
   // Watch each promo section h2 — auto-expand widget section when user opens it
   SECTIONS.forEach(function (s) {
