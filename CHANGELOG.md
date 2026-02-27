@@ -1,5 +1,23 @@
 # Changelog
 
+## 2026-02-27 — Fix banner table, calendar, and datepicker layout
+
+**Why:** Our global CSS overrides were breaking three unrelated platform UI components on the homepage: the Dealer Banners table was overflowing into the fixed right panel; the comiseo daterangepicker calendar popup was being clipped inside its container or overflowing the viewport; and the two-month jQuery UI calendar was rendering with overlapping months.
+
+**What:**
+- `stylesheet.js` — Scoped the global `td` padding reset from `#content td` to `#content table:not(.jsSortable):not(.ui-datepicker) td`, excluding the banner sort table and datepicker. Added `table.jsSortable td{vertical-align:middle}` and `table.jsSortable{max-width:100%}` to preserve the banner table's own inline padding while keeping cells aligned.
+- `stylesheet.js` — Scoped the `.btn` reset to exclude `.ui-datepicker-prev`, `.ui-datepicker-next`, and `.comiseo-daterangepicker-triggerbutton` so calendar nav arrows and the red calendar icon button are not reshaped by our button styles. Added `.comiseo-daterangepicker-triggerbutton` restore rule to force its compact icon-button dimensions.
+- `stylesheet.js` — Reduced jQuery UI datepicker overrides to only `z-index:9999` + minimal `td/th padding:2px`. Removed `font-size`, `width:100%` on tables, and all other rules that were disrupting jQuery UI's float-based two-month layout (causing the month columns to overlap).
+- `stylesheet.js` — Added `.comiseo-daterangepicker{z-index:9999;max-width:calc(100vw - 24px)}` so the popup floats above all content and cannot exceed the viewport width.
+- `stylesheet.js` — Changed both `h2` and `h5` expandablesection content containers from `overflow-x:auto` to `overflow:visible` so absolutely-positioned calendar popups (appended to `<body>` by jQuery UI but visually anchored near their trigger) escape the container boundary without being clipped or creating a scrollbar.
+
+**Decision:** The banner table overflow was caused by extra `td` padding across 8 columns accumulating ~80px of additional width. Scoping the rule by table class rather than trying to reset inline styles was the clean approach. The calendar overlapping was caused by overriding `font-size` and `table width` — jQuery UI calculates `.ui-datepicker-multi` container dimensions from em units and explicit pixel table widths; changing either breaks the math. Stripping those rules entirely (rather than trying to match jQuery UI's internal values) is the only robust fix. `overflow:visible` on the section containers was necessary because `overflow:auto/hidden` creates a CSS stacking context that clips fixed/absolute children regardless of z-index.
+
+**Files:**
+- `src/js/modules/stylesheet.js` — td scoping, .btn exclusions, datepicker overrides, section container overflow
+
+---
+
 ## 2026-02-26 — Promotions page UX enhancements
 
 **Why:** The promotions admin interface shows French and English inputs side-by-side but most sites are English-only. The optional OEM fields (Subheading, Main/2nd value + disclaimers) clutter rows that rarely use them. The Description field holds dense HTML that is difficult to edit in a small textarea.

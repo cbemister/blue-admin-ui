@@ -68,13 +68,13 @@ export function injectStyles() {
     '#content h2.expandablesection select{background:#002a52!important;border:1px solid rgba(255,255,255,.35)!important;color:#fff!important;border-radius:var(--r-md)!important;height:28px!important;padding:2px 8px!important;font-size:12px!important;font-family:var(--font)!important;cursor:pointer!important;box-shadow:none!important;margin-left:10px!important;flex-shrink:0!important;appearance:auto!important;-webkit-appearance:auto!important}',
     '#content h2.expandablesection select option{background:#1a2a3a!important;color:#fff!important}',
     '#content h2.expandablesection select:focus{outline:1px solid rgba(255,255,255,.6)!important;box-shadow:none!important}',
-    '#content h2.expandablesection+div,#content h2.expandablesection+table{border:1px solid var(--border)!important;border-top:none!important;border-radius:0 0 var(--r-lg) var(--r-lg)!important;background:var(--surface)!important;padding:24px!important;margin-bottom:8px!important}',
+    '#content h2.expandablesection+div,#content h2.expandablesection+table{border:1px solid var(--border)!important;border-top:none!important;border-radius:0 0 var(--r-lg) var(--r-lg)!important;background:var(--surface)!important;padding:24px!important;margin-bottom:8px!important;overflow:visible!important}',
     '#content h5.expandablesection{background:#f1f5f9!important;background-image:none!important;color:var(--text)!important;padding:10px 16px 10px 36px!important;margin:16px 0 0!important;border-radius:var(--r-md) var(--r-md) 0 0!important;font-size:13px!important;font-weight:600!important;cursor:pointer!important;user-select:none!important;transition:background var(--t)!important;border:1px solid var(--border)!important;border-bottom:none!important;position:relative!important;display:flex!important;align-items:center!important}',
     '#content h5.expandablesection:hover{background:#e8eef6!important}',
     '#content h5.expandablesection.closed{border-radius:var(--r-md)!important;border:1px solid var(--border)!important;margin-bottom:8px!important;background:#f8fafc!important}',
     '#content h5.expandablesection::before{content:"\\2212"!important;position:absolute!important;left:12px!important;font-size:14px!important;color:var(--text-muted)!important;background-image:none!important}',
     '#content h5.expandablesection.closed::before{content:"+"!important}',
-    '#content h5.expandablesection+div,#content h5.expandablesection+table{border:1px solid var(--border)!important;border-top:none!important;border-radius:0 0 var(--r-md) var(--r-md)!important;background:var(--surface)!important;padding:16px!important;margin-bottom:8px!important}',
+    '#content h5.expandablesection+div,#content h5.expandablesection+table{border:1px solid var(--border)!important;border-top:none!important;border-radius:0 0 var(--r-md) var(--r-md)!important;background:var(--surface)!important;padding:16px!important;margin-bottom:8px!important;overflow:visible!important}',
 
     /* Forms */
     '.form-group{margin-bottom:16px!important}',
@@ -87,8 +87,9 @@ export function injectStyles() {
     '.has-warning .form-control{border-color:var(--warning)!important}.has-error .form-control{border-color:var(--danger)!important}',
 
     /* Buttons */
-    '.btn{display:inline-flex!important;align-items:center!important;justify-content:center!important;padding:7px 16px!important;font-size:13px!important;font-weight:500!important;line-height:1.4!important;border-radius:var(--r-md)!important;border:1px solid transparent!important;cursor:pointer!important;transition:all var(--t)!important;text-decoration:none!important;white-space:nowrap!important;box-shadow:none!important;gap:6px!important;font-family:var(--font)!important}',
-    '.btn:focus{outline:none!important;box-shadow:0 0 0 3px rgba(0,59,112,.2)!important}',
+    /* .btn reset — exclude jQuery UI datepicker and comiseo daterangepicker trigger buttons */
+    '.btn:not(.ui-datepicker-prev):not(.ui-datepicker-next):not(.comiseo-daterangepicker-triggerbutton){display:inline-flex!important;align-items:center!important;justify-content:center!important;padding:7px 16px!important;font-size:13px!important;font-weight:500!important;line-height:1.4!important;border-radius:var(--r-md)!important;border:1px solid transparent!important;cursor:pointer!important;transition:all var(--t)!important;text-decoration:none!important;white-space:nowrap!important;box-shadow:none!important;gap:6px!important;font-family:var(--font)!important}',
+    '.btn:not(.ui-datepicker-prev):not(.ui-datepicker-next):not(.comiseo-daterangepicker-triggerbutton):focus{outline:none!important;box-shadow:0 0 0 3px rgba(0,59,112,.2)!important}',
     '.btn-default{background:var(--surface)!important;border-color:var(--border-dark)!important;color:var(--text)!important}',
     '.btn-default:hover{background:var(--bg)!important;border-color:#a0aec0!important}',
     '.btn-primary{background:var(--d2c-navy)!important;border-color:var(--d2c-navy)!important;color:#fff!important}',
@@ -123,7 +124,13 @@ export function injectStyles() {
     '.table-bordered>thead>tr>th,.table-bordered>tbody>tr>td{border:1px solid var(--border)!important}',
     '.table-striped>tbody>tr:nth-child(odd)>td{background:#f8fafc!important}',
     '.table-hover>tbody>tr:hover>td{background:var(--d2c-blue-light)!important}',
-    'td{padding:6px 10px!important;vertical-align:top!important}',
+    /* Scope td reset — exclude sortable plugin tables (banner table etc.) and datepicker to avoid blowing out their fixed column widths */
+    '#content table:not(.jsSortable):not(.ui-datepicker) td{padding:6px 10px!important;vertical-align:top!important}',
+    /* Banner/sortable table cells: honour their inline padding, just ensure vertical-align */
+    '#content table.jsSortable td{vertical-align:middle!important}',
+    /* Prevent jsSortable table from overflowing its container */
+    '#content table.jsSortable{max-width:100%!important;table-layout:auto!important}',
+    '#content table.jsSortable td input[type="text"]{max-width:100%!important;min-width:0!important;box-sizing:border-box!important}',
 
     /* Panels */
     '.panel{background:var(--surface)!important;border:1px solid var(--border)!important;border-radius:var(--r-lg)!important;box-shadow:var(--shadow-sm)!important;margin-bottom:20px!important}',
@@ -136,6 +143,19 @@ export function injectStyles() {
     '.alert-warning{background:#fef3c7!important;border-color:#fde68a!important;color:#92400e!important}',
     '.alert-danger{background:#fee2e2!important;border-color:#fca5a5!important;color:#991b1b!important}',
     '.alert-info{background:#dbeafe!important;border-color:#bfdbfe!important;color:#1e40af!important}',
+
+    /* jQuery UI datepicker — only set z-index; let jQuery UI manage all sizing/layout internally */
+    '.ui-datepicker{z-index:9999!important}',
+    /* Prevent our global #content td padding from leaking into the datepicker (it's body-appended so #content doesn't scope it, but belt-and-suspenders) */
+    '.ui-datepicker td,.ui-datepicker th{padding:2px!important;border:none!important}',
+    '.ui-datepicker-buttonpane button{display:inline-flex!important;padding:4px 10px!important;font-size:12px!important;border-radius:4px!important;line-height:1.4!important;border:1px solid transparent!important;cursor:pointer!important;font-family:var(--font)!important}',
+    /* Comiseo daterangepicker trigger button — restore compact icon button look */
+    '.comiseo-daterangepicker-triggerbutton{display:inline-flex!important;align-items:center!important;justify-content:center!important;padding:1px 6px!important;border-radius:7px!important;border:0!important;color:#fff!important;font-size:16px!important;width:auto!important;height:24px!important;cursor:pointer!important;vertical-align:middle!important}',
+    /* Comiseo daterangepicker panel — float above all content with high z-index; constrain to viewport width */
+    '.comiseo-daterangepicker{z-index:9999!important;max-width:calc(100vw - 24px)!important;box-sizing:border-box!important}',
+    '.comiseo-daterangepicker .ui-datepicker-calendar td{padding:2px!important;vertical-align:middle!important;text-align:center!important}',
+    '.comiseo-daterangepicker .ui-datepicker-calendar th{padding:4px 2px!important;text-align:center!important}',
+    '.comiseo-daterangepicker .ui-helper-clearfix button{display:inline-flex!important;align-items:center!important;padding:4px 12px!important;font-size:12px!important;line-height:1.4!important;border-radius:4px!important;cursor:pointer!important;font-family:var(--font)!important}',
 
     /* Modals */
     '.modal{position:fixed!important;top:0!important;right:0!important;bottom:0!important;left:0!important;z-index:1050!important;overflow-x:hidden!important;overflow-y:auto!important}',
